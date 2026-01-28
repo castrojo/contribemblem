@@ -61,6 +61,51 @@ jobs:
           echo "Last updated: $(jq -r '.updated_at' data/stats.json)"
           echo "Power Level: $(jq '[.commits, .pull_requests, .issues, .reviews, .stars_received] | add' data/stats.json)"
       
+      - name: Cache Bungie Manifest
+        id: cache-manifest
+        uses: actions/cache@v4
+        with:
+          path: data/manifest.json
+          key: bungie-manifest-${{ steps.get-date.outputs.date }}
+          restore-keys: |
+            bungie-manifest-
+      
+      - name: Create default emblem config
+        run: |
+          if [ ! -f data/emblem-config.json ]; then
+            echo '{"rotation":[1409726931,2448092419,3642894792],"fallback":1409726931}' > data/emblem-config.json
+            echo "✓ Created default emblem config"
+          else
+            echo "✓ Using existing emblem config"
+          fi
+      
+      - name: Select weekly emblem
+        id: select-emblem
+        run: |
+          chmod +x scripts/select-emblem.sh
+          EMBLEM_HASH=$(./scripts/select-emblem.sh)
+          echo "hash=$EMBLEM_HASH" >> $GITHUB_OUTPUT
+          echo "✓ Selected emblem hash: $EMBLEM_HASH"
+      
+      - name: Fetch emblem from Bungie API
+        run: |
+          chmod +x scripts/fetch-emblem.sh
+          if echo "${{ steps.select-emblem.outputs.hash }}" | ./scripts/fetch-emblem.sh; then
+            echo "✓ Emblem fetched successfully"
+          else
+            echo "⚠️  Bungie API fetch failed, using fallback emblem"
+            # Download fallback emblem directly (The Seventh Column)
+            curl -o data/emblem.jpg https://www.bungie.net/common/destiny2_content/icons/70f838d67c5f4cf285620f5b66d338a5.jpg
+          fi
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+      
+      - name: Log emblem status
+        run: |
+          echo "✓ Emblem image ready for Phase 4 image generation"
+          ls -lh data/emblem.jpg
+          file data/emblem.jpg
+      
       - name: Check for changes
         id: changes
         run: |
