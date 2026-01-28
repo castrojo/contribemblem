@@ -25,14 +25,41 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Generate emblem (placeholder)
-        run: |
-          echo "TODO: Phase 2-4 will generate emblem here"
-          echo "This is a placeholder for testing the workflow infrastructure"
+      - name: Get current date (UTC)
+        id: get-date
+        run: echo "date=$(date -u +%Y%m%d)" >> $GITHUB_OUTPUT
       
-      - name: Create placeholder file
+      - name: Cache GitHub Stats
+        id: cache-stats
+        uses: actions/cache@v4
+        with:
+          path: data/stats.json
+          key: github-stats-${{ steps.get-date.outputs.date }}
+          restore-keys: |
+            github-stats-
+      
+      - name: Create data directory
+        run: mkdir -p data
+      
+      - name: Fetch GitHub Stats
+        if: steps.cache-stats.outputs.cache-hit != 'true'
         run: |
-          echo "placeholder" > emblem.png.tmp
+          chmod +x scripts/fetch-stats.sh scripts/process-stats.sh
+          ./scripts/fetch-stats.sh > data/stats.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+      
+      - name: Log stats status
+        run: |
+          if [ "${{ steps.cache-stats.outputs.cache-hit }}" == "true" ]; then
+            echo "✓ Using cached stats from previous run (within 24 hours)"
+          else
+            echo "✓ Fetched fresh stats from GitHub API"
+          fi
+          echo "Stats for year: $(jq -r '.year' data/stats.json)"
+          echo "Last updated: $(jq -r '.updated_at' data/stats.json)"
+          echo "Power Level: $(jq '[.commits, .pull_requests, .issues, .reviews, .stars_received] | add' data/stats.json)"
       
       - name: Check for changes
         id: changes
