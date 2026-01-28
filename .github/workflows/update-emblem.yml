@@ -3,6 +3,7 @@ name: Update ContribEmblem Badge
 on:
   schedule:
     - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
+  workflow_dispatch:  # Allow manual triggering for testing
   push:
     paths-ignore:
       - '.github/workflows/**'
