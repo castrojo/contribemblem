@@ -59,10 +59,10 @@ Plans:
   2. Action selects one emblem randomly from user's rotation list each week
   3. Same emblem selected consistently throughout the week (seeded by week number)
   4. Fallback emblem displayed if API fetch fails or emblem ID invalid
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 03-01: [TBD during phase planning]
+- [ ] 03-01-PLAN.md — Deterministic weekly emblem selection and Bungie API fetching with fallback handling
 
 ### Phase 4: Image Generation with Power Level
 **Goal**: Action generates PNG with Destiny-styled stat overlay featuring prominent Power Level
@@ -116,7 +116,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. GitHub Actions Foundation | 1/1 | Complete | 2026-01-27 |
 | 2. GitHub Stats Collection | 1/1 | Complete | 2026-01-28 |
-| 3. Bungie API Integration | 0/TBD | Not started | - |
+| 3. Bungie API Integration | 0/1 | Ready | - |
 | 4. Image Generation with Power Level | 0/TBD | Not started | - |
 | 5. README Update & Commit | 0/TBD | Not started | - |
 | 6. Configuration & Validation | 0/TBD | Not started | - |
