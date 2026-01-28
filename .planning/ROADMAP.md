@@ -45,10 +45,10 @@ Plans:
   3. API responses cached for 24 hours to prevent redundant fetches
   4. Rate limit monitoring logs remaining quota without exhausting limits
   5. Date boundary handling works correctly on January 1 (year rollover)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 02-01: [TBD during phase planning]
+- [ ] 02-01-PLAN.md — GraphQL stats fetching with UTC boundaries, caching, and rate limit monitoring
 
 ### Phase 3: Bungie API Integration
 **Goal**: Action retrieves Destiny emblem artwork and selects one randomly per week
