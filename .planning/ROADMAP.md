@@ -74,10 +74,10 @@ Plans:
   3. Individual metric values and icons displayed clearly below Power Level
   4. Text readable on all emblem backgrounds (outline/stroke for contrast)
   5. Generated image saved with stable filename that overwrites previous version
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: [TBD during phase planning]
+- [ ] 04-01-PLAN.md — Node.js canvas setup with multi-layer text rendering and Destiny-styled badge generation
 
 ### Phase 5: README Update & Commit
 **Goal**: Action non-destructively updates README and commits generated PNG to repository
