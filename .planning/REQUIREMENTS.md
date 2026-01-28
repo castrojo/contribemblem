@@ -25,11 +25,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### GitHub Stats Collection
 
-- [ ] **STATS-01**: Action fetches GitHub contribution stats via GraphQL API
-- [ ] **STATS-02**: Stats filtered to current calendar year only (Jan 1 - Dec 31)
-- [ ] **STATS-03**: API responses cached with 24hr expiry to avoid rate limits
-- [ ] **STATS-04**: Rate limit headers monitored and logged (X-RateLimit-Remaining)
-- [ ] **STATS-05**: Stats include: commits, PRs, issues, code reviews, stars received
+- [x] **STATS-01**: Action fetches GitHub contribution stats via GraphQL API
+- [x] **STATS-02**: Stats filtered to current calendar year only (Jan 1 - Dec 31)
+- [x] **STATS-03**: API responses cached with 24hr expiry to avoid rate limits
+- [x] **STATS-04**: Rate limit headers monitored and logged (X-RateLimit-Remaining)
+- [x] **STATS-05**: Stats include: commits, PRs, issues, code reviews, stars received
 
 ### Emblem Integration
 
