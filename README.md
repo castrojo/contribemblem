@@ -11,6 +11,13 @@ ContribEmblem is a GitHub Action that automatically generates and updates a pers
 - **Auto-updating images** that refresh weekly via GitHub Actions
 - **Stable embed URLs** for use in profiles, READMEs, and websites
 
+### Recent Updates
+
+- ✅ **YAML Configuration Support** - New `contribemblem.yml` for easier setup
+- ✅ **Smart Manifest Caching** - 24-hour TTL with automatic cache invalidation
+- ✅ **Comprehensive Test Coverage** - Real tests for badge generation, text rendering, manifest parsing, and GitHub stats
+- ✅ **Improved Dimensions** - Badge now uses proper 800×162px aspect ratio matching Destiny 2 emblems
+
 ## Examples
 
 Here are some example badges showcasing different contribution profiles:
@@ -39,11 +46,11 @@ Your emblem rotates weekly from Destiny 2's emblem collection, giving your profi
 
 ### 📊 GitHub Stats Integration
 Your "Power Level" is calculated from 5 key GitHub metrics:
-- Commits this year
-- Pull requests
-- Issues created/commented
-- Code reviews
-- Stars received on your repositories
+- **Commits** - Total commits this year
+- **Pull Requests** - PRs opened and merged
+- **Issues** - Issues created and commented on
+- **Reviews** - Code reviews completed
+- **Stars** - Total stars across all your repositories
 
 ### 🔄 Automatic Updates
 The emblem updates every Sunday at midnight UTC via GitHub Actions. No manual intervention required.
@@ -69,8 +76,15 @@ Use stable GitHub URLs to embed your emblem anywhere:
    - Go to Settings → Secrets and variables → Actions
    - Add `BUNGIE_API_KEY` with your Bungie API key
 
-3. **Configure emblem rotation (optional):**
-   - Edit `data/emblem-config.json` to customize your emblem rotation
+3. **Configure your badge (choose one):**
+   
+   **Option A: YAML Configuration (Recommended)**
+   - Create `contribemblem.yml` in your repository root
+   - Set your username and customize metrics/emblems
+   - See [Configuration](#configuration) section for full details
+   
+   **Option B: JSON Configuration (Legacy)**
+   - Edit `data/emblem-config.json` to customize emblem rotation
    - Find emblem hashes at [Destiny 2 API documentation](https://bungie-net.github.io/)
 
 4. **Enable GitHub Actions:**
@@ -88,9 +102,15 @@ make build
 # Run tests
 make test
 
-# Run the full pipeline locally
+# Run the full pipeline locally (option 1: environment variables)
 export GITHUB_TOKEN=your_token
 export GITHUB_ACTOR=your_username
+export BUNGIE_API_KEY=your_key
+./contribemblem run
+
+# Run the full pipeline locally (option 2: config file)
+# Create contribemblem.yml with your username
+export GITHUB_TOKEN=your_token
 export BUNGIE_API_KEY=your_key
 ./contribemblem run
 ```
@@ -110,6 +130,38 @@ contribemblem help             # Show help message
 
 ## Configuration
 
+ContribEmblem supports two configuration methods:
+
+### Option 1: YAML Configuration (Recommended)
+
+Create a `contribemblem.yml` file in your repository root:
+
+```yaml
+username: your-github-username
+
+metrics:
+  commits: true
+  pull_requests: true
+  issues: true
+  reviews: true
+  stars: true
+
+emblems:
+  rotation:
+    - "1538938257"  # Seventh Column Projection
+    - "2962058744"  # Another emblem
+    - "2962058745"  # Yet another emblem
+  fallback: "1538938257"
+```
+
+**Configuration options:**
+- `username` - Your GitHub username (overrides `GITHUB_ACTOR` env var)
+- `metrics` - Toggle which stats appear on your badge
+- `emblems.rotation` - Array of Bungie emblem hashes to rotate through weekly
+- `emblems.fallback` - Emblem to use if rotation is empty or unavailable
+
+### Option 2: JSON Configuration (Legacy)
+
 Edit `data/emblem-config.json` to customize your emblem rotation:
 
 ```json
@@ -126,13 +178,17 @@ Edit `data/emblem-config.json` to customize your emblem rotation:
 - `rotation`: Array of Bungie emblem hashes to rotate through weekly
 - `fallback`: Emblem to use if rotation is empty or config is missing
 
+> **Note:** YAML configuration (`contribemblem.yml`) takes precedence over JSON configuration. If both exist, the YAML file will be used.
+
 ## Technical Details
 
 - **Language:** Pure Go (no CGo dependencies)
 - **Image Generation:** stdlib + `golang.org/x/image`
-- **Badge Size:** 800×400px PNG
+- **Badge Size:** 800×162px PNG (matches Destiny 2's 474:96 emblem aspect ratio)
 - **Font:** Rajdhani Bold (embedded via `go:embed`)
-- **Caching:** GitHub Actions cache for manifest and stats (24 hours)
+- **Caching:** Manifest cache with 24-hour TTL (auto-invalidation)
+- **Configuration:** YAML (`contribemblem.yml`) or JSON (`data/emblem-config.json`)
+- **Testing:** Comprehensive test coverage with fixtures for badge generation, text rendering, manifest parsing, and GitHub stats
 
 ## License
 
