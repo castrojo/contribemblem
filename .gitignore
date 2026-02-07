@@ -1,0 +1,10 @@
+# Data files
+data/stats.json
+data/emblem.jpg
+data/manifest.json
+
+# Go binary
+contribemblem
+
+# Output
+badge.png
