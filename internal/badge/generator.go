@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	_ "image/jpeg"
 	"image/png"
 	"os"
@@ -20,15 +21,37 @@ var rajdhaniFontData []byte
 const (
 	Width  = 800
 	Height = 162 // Matches Destiny 2 emblem aspect ratio (474:96)
+
+	// Layout constants
+	marginX        = 20
+	marginTop      = 12
+	statBarHeight  = 36
+	accentHeight   = 3
+	borderWidth    = 1
+	statDividerW   = 1
+	gradientStartX = 0.4 // Start gradient at 40% from left
 )
 
 var (
 	// Destiny exotic gold
 	PowerLevelColor = color.RGBA{244, 208, 63, 255} // #F4D03F
+	AccentColor     = color.RGBA{244, 208, 63, 255} // #F4D03F
 	WhiteColor      = color.RGBA{255, 255, 255, 255}
+	DimWhiteColor   = color.RGBA{180, 180, 190, 255}
 	BlackColor      = color.RGBA{0, 0, 0, 255}
 	ShadowColor     = color.RGBA{0, 0, 0, 204} // alpha 0.8
+	StatBarColor    = color.RGBA{0, 0, 0, 150}
+	DividerColor    = color.RGBA{255, 255, 255, 50}
+	BorderColor     = color.RGBA{60, 60, 65, 255}
+	OverlayDark     = color.RGBA{0, 0, 0, 25}
 )
+
+// FontFaces holds the three font sizes used in badge generation
+type FontFaces struct {
+	Large  font.Face // 48pt for power level
+	Medium font.Face // 26pt for username
+	Small  font.Face // 14pt for stats
+}
 
 // Stats for badge generation
 type Stats struct {
@@ -54,39 +77,92 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	// Create canvas
 	canvas := image.NewRGBA(image.Rect(0, 0, Width, Height))
 
-	// Scale and draw emblem as background
+	// Phase 1: Scale and draw emblem as background
 	xdraw.BiLinear.Scale(canvas, canvas.Bounds(), emblemImg, emblemImg.Bounds(), xdraw.Over, nil)
 
-	// Load font
-	face48, face20, err := loadFonts()
+	// Phase 2: Overall darken overlay for Destiny dark UI feel
+	drawRect(canvas, 0, 0, Width, Height, OverlayDark)
+
+	// Phase 3: Horizontal gradient overlay (left transparent → right semi-opaque black)
+	drawHorizontalGradient(canvas, int(float64(Width)*gradientStartX), 0, Width, Height, color.RGBA{0, 0, 0, 100})
+
+	// Phase 4: Semi-transparent stat bar across bottom
+	statBarY := Height - statBarHeight
+	drawRect(canvas, 0, statBarY, Width, statBarHeight, StatBarColor)
+
+	// Phase 5: Gold accent line at top
+	drawRect(canvas, 0, 0, Width, accentHeight, AccentColor)
+
+	// Phase 6: Border around entire badge
+	drawBorder(canvas, Width, Height, borderWidth, BorderColor)
+
+	// Load fonts
+	fonts, err := loadFonts()
 	if err != nil {
 		return fmt.Errorf("failed to load fonts: %w", err)
 	}
-	defer face48.Close()
-	defer face20.Close()
+	defer fonts.Large.Close()
+	defer fonts.Medium.Close()
+	defer fonts.Small.Close()
 
 	// Calculate Power Level
 	powerLevel := stats.Commits + stats.PullRequests + stats.Issues + stats.Reviews + stats.Stars
 
-	// Render username (top-left)
+	// Render username (top-left with medium font)
 	if stats.Username != "" {
-		DrawTextWithOutline(canvas, stats.Username, 50, 50, face20, WhiteColor)
+		usernameY := accentHeight + marginTop + 28
+		DrawTextWithOutline(canvas, stats.Username, marginX+4, usernameY, fonts.Medium, WhiteColor)
 	}
 
-	// Render Power Level (top-right)
+	// Render Power Level (right-aligned with diamond icon)
 	powerText := fmt.Sprintf("%d", powerLevel)
-	DrawTextWithOutline(canvas, powerText, 700, 60, face48, PowerLevelColor)
+	diamondIcon := "◆"
 
-	// Render individual stats (bottom row)
-	statLabels := []string{"C:", "PR:", "I:", "R:", "S:"}
+	// Measure text widths
+	powerWidth := measureText(fonts.Large, powerText)
+	diamondWidth := measureText(fonts.Large, diamondIcon)
+	totalWidth := diamondWidth + 8 + powerWidth // 8px spacing between diamond and number
+
+	// Calculate right-aligned position
+	powerX := Width - marginX - totalWidth
+	powerY := accentHeight + marginTop + 52
+
+	// Draw diamond icon
+	DrawTextWithOutline(canvas, diamondIcon, powerX, powerY, fonts.Large, PowerLevelColor)
+
+	// Draw power level number
+	DrawTextWithOutline(canvas, powerText, powerX+diamondWidth+8, powerY, fonts.Large, PowerLevelColor)
+
+	// Render stats in stat bar (centered in cells with dividers)
+	statLabels := []string{"COMMITS", "PRS", "ISSUES", "REVIEWS", "STARS"}
 	statValues := []int{stats.Commits, stats.PullRequests, stats.Issues, stats.Reviews, stats.Stars}
-	xOffset := 50
-	spacing := 140
+
+	cellWidth := Width / 5
+	statCenterY := statBarY + statBarHeight/2
 
 	for i := 0; i < 5; i++ {
-		text := fmt.Sprintf("%s %s", statLabels[i], FormatNumber(statValues[i]))
-		DrawTextWithOutline(canvas, text, xOffset, 140, face20, WhiteColor)
-		xOffset += spacing
+		// Draw vertical divider (except before first stat)
+		if i > 0 {
+			dividerX := i * cellWidth
+			drawRect(canvas, dividerX, statBarY, statDividerW, statBarHeight, DividerColor)
+		}
+
+		// Prepare label and value text
+		label := statLabels[i]
+		value := FormatNumber(statValues[i])
+
+		// Measure text widths for centering
+		labelWidth := measureText(fonts.Small, label)
+		valueWidth := measureText(fonts.Small, value)
+		totalTextWidth := labelWidth + 6 + valueWidth // 6px spacing between label and value
+
+		// Calculate center position within cell
+		cellCenterX := i*cellWidth + cellWidth/2
+		textStartX := cellCenterX - totalTextWidth/2
+
+		// Draw label (dim white) and value (bright white)
+		DrawTextWithOutline(canvas, label, textStartX, statCenterY+5, fonts.Small, DimWhiteColor)
+		DrawTextWithOutline(canvas, value, textStartX+labelWidth+6, statCenterY+5, fonts.Small, WhiteColor)
 	}
 
 	// Save PNG
@@ -104,31 +180,47 @@ func loadImage(path string) (image.Image, error) {
 	return img, err
 }
 
-func loadFonts() (font.Face, font.Face, error) {
+func loadFonts() (*FontFaces, error) {
 	ttf, err := opentype.Parse(rajdhaniFontData)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	face48, err := opentype.NewFace(ttf, &opentype.FaceOptions{
+	large, err := opentype.NewFace(ttf, &opentype.FaceOptions{
 		Size:    48,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	face20, err := opentype.NewFace(ttf, &opentype.FaceOptions{
-		Size:    20,
+	medium, err := opentype.NewFace(ttf, &opentype.FaceOptions{
+		Size:    26,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
 	if err != nil {
-		return nil, nil, err
+		large.Close()
+		return nil, err
 	}
 
-	return face48, face20, nil
+	small, err := opentype.NewFace(ttf, &opentype.FaceOptions{
+		Size:    14,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		large.Close()
+		medium.Close()
+		return nil, err
+	}
+
+	return &FontFaces{
+		Large:  large,
+		Medium: medium,
+		Small:  small,
+	}, nil
 }
 
 func savePNG(img image.Image, path string) error {
@@ -139,4 +231,53 @@ func savePNG(img image.Image, path string) error {
 	defer f.Close()
 
 	return png.Encode(f, img)
+}
+
+// drawRect draws a filled rectangle with the given color
+func drawRect(dst draw.Image, x, y, width, height int, col color.Color) {
+	rect := image.Rect(x, y, x+width, y+height)
+	draw.Draw(dst, rect, &image.Uniform{col}, image.Point{}, draw.Over)
+}
+
+// drawHorizontalGradient draws a left-to-right gradient from transparent to the given color
+func drawHorizontalGradient(dst draw.Image, startX, y, endX, height int, endColor color.Color) {
+	r, g, b, a := endColor.RGBA()
+	maxAlpha := float64(a >> 8)
+
+	for x := startX; x < endX; x++ {
+		// Calculate alpha based on position (0.0 at startX, 1.0 at endX)
+		progress := float64(x-startX) / float64(endX-startX)
+		alpha := uint8(progress * maxAlpha)
+
+		gradColor := color.RGBA{
+			R: uint8(r >> 8),
+			G: uint8(g >> 8),
+			B: uint8(b >> 8),
+			A: alpha,
+		}
+
+		drawRect(dst, x, y, 1, height, gradColor)
+	}
+}
+
+// drawBorder draws a border around the image
+func drawBorder(dst draw.Image, width, height, borderW int, col color.Color) {
+	// Top
+	drawRect(dst, 0, 0, width, borderW, col)
+	// Bottom
+	drawRect(dst, 0, height-borderW, width, borderW, col)
+	// Left
+	drawRect(dst, 0, 0, borderW, height, col)
+	// Right
+	drawRect(dst, width-borderW, 0, borderW, height, col)
+}
+
+// measureText returns the width of the text in pixels
+func measureText(face font.Face, text string) int {
+	drawer := &font.Drawer{
+		Face: face,
+	}
+
+	advance := drawer.MeasureString(text)
+	return advance.Round()
 }
