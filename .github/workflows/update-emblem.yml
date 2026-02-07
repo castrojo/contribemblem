@@ -32,7 +32,7 @@ jobs:
           cache: true
 
       - name: Build ContribEmblem
-        run: go build -o contribemblem cmd/contribemblem/main.go
+        run: go build -o contribemblem ./cmd/contribemblem
       
       - name: Get current date (UTC)
         id: get-date
