@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/castrojo/contribemblem/internal/config"
 )
 
 const (
@@ -60,4 +62,33 @@ func loadConfig(path string) (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+// SelectEmblemFromConfig performs deterministic weekly emblem selection
+// from a config.EmblemsConfig structure
+func SelectEmblemFromConfig(cfg *config.EmblemsConfig) (string, error) {
+	if cfg == nil || len(cfg.Rotation) == 0 {
+		// Use fallback if config missing or rotation empty
+		if cfg != nil && cfg.Fallback != "" {
+			return cfg.Fallback, nil
+		}
+		return FallbackEmblem, nil
+	}
+
+	// Calculate ISO week in UTC (format: YYYY-Www, e.g., "2026-W06")
+	now := time.Now().UTC()
+	year, week := now.ISOWeek()
+	isoWeek := fmt.Sprintf("%d-W%02d", year, week)
+
+	// Generate SHA256 hash of ISO week string
+	hash := sha256.Sum256([]byte(isoWeek))
+
+	// Convert first 8 bytes of hash to uint64 (deterministic seed)
+	hashValue := binary.BigEndian.Uint64(hash[:8])
+
+	// Select emblem using modulo operation
+	index := int(hashValue % uint64(len(cfg.Rotation)))
+	selectedEmblem := cfg.Rotation[index]
+
+	return selectedEmblem, nil
 }

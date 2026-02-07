@@ -41,16 +41,21 @@ type graphQLResponse struct {
 }
 
 // FetchStats queries GitHub GraphQL API for user contribution stats
-// Requires GITHUB_TOKEN and GITHUB_ACTOR env vars
-func FetchStats() (*Stats, error) {
+// Requires GITHUB_TOKEN env var
+// If username is empty, falls back to GITHUB_ACTOR env var
+// If client is nil, uses default http.Client with 30s timeout
+func FetchStats(username string, client *http.Client) (*Stats, error) {
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		return nil, fmt.Errorf("GITHUB_TOKEN environment variable not set")
 	}
 
-	username := os.Getenv("GITHUB_ACTOR")
+	// Fall back to GITHUB_ACTOR env var if username not provided
 	if username == "" {
-		return nil, fmt.Errorf("GITHUB_ACTOR environment variable not set")
+		username = os.Getenv("GITHUB_ACTOR")
+		if username == "" {
+			return nil, fmt.Errorf("username not provided and GITHUB_ACTOR environment variable not set")
+		}
 	}
 
 	// Calculate current year boundaries in UTC (matches GitHub's contribution logic)
@@ -83,7 +88,10 @@ func FetchStats() (*Stats, error) {
 	req.Header.Set("Authorization", "bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	// Use provided client or create default
+	if client == nil {
+		client = &http.Client{Timeout: 30 * time.Second}
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("GraphQL request failed: %w", err)

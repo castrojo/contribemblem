@@ -8,6 +8,7 @@ import (
 
 	"github.com/castrojo/contribemblem/internal/badge"
 	"github.com/castrojo/contribemblem/internal/bungie"
+	"github.com/castrojo/contribemblem/internal/config"
 	"github.com/castrojo/contribemblem/internal/emblem"
 	"github.com/castrojo/contribemblem/internal/github"
 	"github.com/castrojo/contribemblem/internal/readme"
@@ -19,10 +20,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Load config from contribemblem.yml (fallback to env vars if not found)
+	cfg, err := config.Load(config.DefaultConfigPath)
+	if err != nil {
+		// Config file not found or invalid - this is OK for backwards compatibility
+		// Commands will fall back to environment variables (GITHUB_ACTOR)
+		fmt.Fprintf(os.Stderr, "Note: Config file not loaded (%v), using environment variables\n", err)
+		cfg = nil
+	}
+
 	cmd := os.Args[1]
 	switch cmd {
 	case "fetch-stats":
-		stats, err := github.FetchStats()
+		username := getUsername(cfg)
+		stats, err := github.FetchStats(username, nil)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
@@ -30,7 +41,13 @@ func main() {
 		data, _ := json.MarshalIndent(stats, "", "  ")
 		fmt.Println(string(data))
 	case "select-emblem":
-		selectedEmblem, err := emblem.SelectEmblem(emblem.DefaultConfigPath)
+		// Try config first, fall back to JSON file
+		var selectedEmblem string
+		if cfg != nil {
+			selectedEmblem, err = emblem.SelectEmblemFromConfig(&cfg.Emblems)
+		} else {
+			selectedEmblem, err = emblem.SelectEmblem(emblem.DefaultConfigPath)
+		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
@@ -67,7 +84,7 @@ func main() {
 
 		// Convert to badge.Stats
 		badgeStats := &badge.Stats{
-			Username:     os.Getenv("GITHUB_ACTOR"),
+			Username:     getUsername(cfg),
 			Commits:      ghStats.Commits,
 			PullRequests: ghStats.PullRequests,
 			Issues:       ghStats.Issues,
@@ -98,7 +115,8 @@ func main() {
 
 		// Step 1: Fetch GitHub stats
 		fmt.Println("[1/5] Fetching GitHub stats...")
-		stats, err := github.FetchStats()
+		username := getUsername(cfg)
+		stats, err := github.FetchStats(username, nil)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to fetch stats: %v\n", err)
 			os.Exit(1)
@@ -118,7 +136,12 @@ func main() {
 
 		// Step 2: Select emblem
 		fmt.Println("[2/5] Selecting weekly emblem...")
-		emblemHash, err := emblem.SelectEmblem(emblem.DefaultConfigPath)
+		var emblemHash string
+		if cfg != nil {
+			emblemHash, err = emblem.SelectEmblemFromConfig(&cfg.Emblems)
+		} else {
+			emblemHash, err = emblem.SelectEmblem(emblem.DefaultConfigPath)
+		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to select emblem: %v\n", err)
 			os.Exit(1)
@@ -136,7 +159,7 @@ func main() {
 		// Step 4: Generate badge
 		fmt.Println("[4/5] Generating badge image...")
 		badgeStats := &badge.Stats{
-			Username:     os.Getenv("GITHUB_ACTOR"),
+			Username:     getUsername(cfg),
 			Commits:      stats.Commits,
 			PullRequests: stats.PullRequests,
 			Issues:       stats.Issues,
@@ -171,6 +194,14 @@ func main() {
 		printUsage()
 		os.Exit(1)
 	}
+}
+
+// getUsername returns the username from config, falling back to GITHUB_ACTOR env var
+func getUsername(cfg *config.Config) string {
+	if cfg != nil && cfg.Username != "" {
+		return cfg.Username
+	}
+	return os.Getenv("GITHUB_ACTOR")
 }
 
 func printUsage() {

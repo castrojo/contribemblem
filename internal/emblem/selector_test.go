@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/castrojo/contribemblem/internal/config"
 )
 
 func TestSelectEmblem(t *testing.T) {
@@ -72,6 +74,68 @@ func TestSelectEmblemDeterministic(t *testing.T) {
 	// Select emblem twice - should be identical
 	emblem1, _ := SelectEmblem(configPath)
 	emblem2, _ := SelectEmblem(configPath)
+
+	if emblem1 != emblem2 {
+		t.Errorf("Selection not deterministic: %s != %s", emblem1, emblem2)
+	}
+}
+
+func TestSelectEmblemFromConfig(t *testing.T) {
+	cfg := &config.EmblemsConfig{
+		Rotation: []string{"1538938257", "2962058744", "2962058745"},
+		Fallback: "1538938257",
+	}
+
+	emblem, err := SelectEmblemFromConfig(cfg)
+	if err != nil {
+		t.Fatalf("SelectEmblemFromConfig failed: %v", err)
+	}
+
+	// Verify emblem is one of the rotation values
+	validEmblems := map[string]bool{
+		"1538938257": true,
+		"2962058744": true,
+		"2962058745": true,
+	}
+	if !validEmblems[emblem] {
+		t.Errorf("Selected emblem %s not in rotation", emblem)
+	}
+}
+
+func TestSelectEmblemFromConfigNilConfig(t *testing.T) {
+	emblem, err := SelectEmblemFromConfig(nil)
+	if err != nil {
+		t.Fatalf("Expected no error on nil config, got %v", err)
+	}
+	if emblem != FallbackEmblem {
+		t.Errorf("Expected fallback emblem %s, got %s", FallbackEmblem, emblem)
+	}
+}
+
+func TestSelectEmblemFromConfigEmptyRotation(t *testing.T) {
+	cfg := &config.EmblemsConfig{
+		Rotation: []string{},
+		Fallback: "1234567890",
+	}
+
+	emblem, err := SelectEmblemFromConfig(cfg)
+	if err != nil {
+		t.Fatalf("Expected no error on empty rotation, got %v", err)
+	}
+	if emblem != "1234567890" {
+		t.Errorf("Expected custom fallback emblem 1234567890, got %s", emblem)
+	}
+}
+
+func TestSelectEmblemFromConfigDeterministic(t *testing.T) {
+	cfg := &config.EmblemsConfig{
+		Rotation: []string{"1538938257", "2962058744", "2962058745"},
+		Fallback: "1538938257",
+	}
+
+	// Select emblem twice - should be identical
+	emblem1, _ := SelectEmblemFromConfig(cfg)
+	emblem2, _ := SelectEmblemFromConfig(cfg)
 
 	if emblem1 != emblem2 {
 		t.Errorf("Selection not deterministic: %s != %s", emblem1, emblem2)
