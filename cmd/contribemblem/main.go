@@ -67,6 +67,7 @@ func main() {
 
 		// Convert to badge.Stats
 		badgeStats := &badge.Stats{
+			Username:     os.Getenv("GITHUB_ACTOR"),
 			Commits:      ghStats.Commits,
 			PullRequests: ghStats.PullRequests,
 			Issues:       ghStats.Issues,
@@ -135,6 +136,7 @@ func main() {
 		// Step 4: Generate badge
 		fmt.Println("[4/5] Generating badge image...")
 		badgeStats := &badge.Stats{
+			Username:     os.Getenv("GITHUB_ACTOR"),
 			Commits:      stats.Commits,
 			PullRequests: stats.PullRequests,
 			Issues:       stats.Issues,

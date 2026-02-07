@@ -32,6 +32,7 @@ var (
 
 // Stats for badge generation
 type Stats struct {
+	Username     string
 	Commits      int
 	PullRequests int
 	Issues       int
@@ -67,18 +68,23 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	// Calculate Power Level
 	powerLevel := stats.Commits + stats.PullRequests + stats.Issues + stats.Reviews + stats.Stars
 
+	// Render username (top-left)
+	if stats.Username != "" {
+		DrawTextWithOutline(canvas, stats.Username, 50, 50, face20, WhiteColor)
+	}
+
 	// Render Power Level (top-right)
 	powerText := fmt.Sprintf("%d", powerLevel)
 	DrawTextWithOutline(canvas, powerText, 700, 60, face48, PowerLevelColor)
 
 	// Render individual stats (bottom row)
-	statIcons := []string{"●", "◆", "■", "▲", "★"}
+	statLabels := []string{"C:", "PR:", "I:", "R:", "S:"}
 	statValues := []int{stats.Commits, stats.PullRequests, stats.Issues, stats.Reviews, stats.Stars}
 	xOffset := 50
 	spacing := 140
 
 	for i := 0; i < 5; i++ {
-		text := fmt.Sprintf("%s %s", statIcons[i], FormatNumber(statValues[i]))
+		text := fmt.Sprintf("%s %s", statLabels[i], FormatNumber(statValues[i]))
 		DrawTextWithOutline(canvas, text, xOffset, 140, face20, WhiteColor)
 		xOffset += spacing
 	}
