@@ -26,7 +26,9 @@ jobs:
           cache: true
       
       - name: Install ImageMagick
-        run: brew install imagemagick
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install imagemagick
 
       - name: Build ContribEmblem
         run: go build -o contribemblem ./cmd/contribemblem
