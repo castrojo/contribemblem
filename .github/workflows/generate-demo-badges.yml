@@ -60,5 +60,6 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           git pull --rebase origin main
+          git add examples/*.png
           git commit -m "chore: regenerate example badges with real Destiny emblem artwork"
           git push
