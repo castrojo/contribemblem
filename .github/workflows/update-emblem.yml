@@ -62,7 +62,7 @@ jobs:
       - name: Create default emblem config
         run: |
           if [ ! -f data/emblem-config.json ]; then
-            echo '{"rotation":[1409726931,2448092419,3642894792],"fallback":1409726931}' > data/emblem-config.json
+            echo '{"rotation":["1538938257","2962058744","2962058745"],"fallback":"1538938257"}' > data/emblem-config.json
             echo "✓ Created default emblem config"
           else
             echo "✓ Using existing emblem config"

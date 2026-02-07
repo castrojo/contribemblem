@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	FallbackEmblem    = "1409726931" // "The Seventh Column" emblem
+	FallbackEmblem    = "1538938257" // "Seventh Column Projection" emblem
 	DefaultConfigPath = "data/emblem-config.json"
 )
 

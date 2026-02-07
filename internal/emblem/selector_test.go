@@ -11,7 +11,7 @@ func TestSelectEmblem(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "emblem-config.json")
 
-	configJSON := `{"rotation":["1409726931","2448092419","3642894792"],"fallback":"1409726931"}`
+	configJSON := `{"rotation":["1538938257","2962058744","2962058745"],"fallback":"1538938257"}`
 	if err := os.WriteFile(configPath, []byte(configJSON), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
@@ -23,9 +23,9 @@ func TestSelectEmblem(t *testing.T) {
 
 	// Verify emblem is one of the rotation values
 	validEmblems := map[string]bool{
-		"1409726931": true,
-		"2448092419": true,
-		"3642894792": true,
+		"1538938257": true,
+		"2962058744": true,
+		"2962058745": true,
 	}
 	if !validEmblems[emblem] {
 		t.Errorf("Selected emblem %s not in rotation", emblem)
@@ -46,7 +46,7 @@ func TestSelectEmblemEmptyRotation(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "emblem-config.json")
 
-	configJSON := `{"rotation":[],"fallback":"1409726931"}`
+	configJSON := `{"rotation":[],"fallback":"1538938257"}`
 	if err := os.WriteFile(configPath, []byte(configJSON), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
@@ -64,7 +64,7 @@ func TestSelectEmblemDeterministic(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "emblem-config.json")
 
-	configJSON := `{"rotation":["1409726931","2448092419","3642894792"],"fallback":"1409726931"}`
+	configJSON := `{"rotation":["1538938257","2962058744","2962058745"],"fallback":"1538938257"}`
 	if err := os.WriteFile(configPath, []byte(configJSON), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
