@@ -98,4 +98,15 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           git commit -m "chore: update badge [skip ci]"
-          git push
+          # Retry push with pull/rebase to handle concurrent workflow runs
+          for i in {1..3}; do
+            if git push; then
+              echo "✓ Push succeeded"
+              exit 0
+            fi
+            echo "⚠️  Push failed (attempt $i/3), pulling and retrying..."
+            git pull --rebase origin main || git pull --no-rebase origin main
+            sleep 2
+          done
+          echo "❌ Failed to push after 3 attempts"
+          exit 1
