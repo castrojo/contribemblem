@@ -11,6 +11,27 @@ ContribEmblem is a GitHub Action that automatically generates and updates a pers
 - **Auto-updating images** that refresh weekly via GitHub Actions
 - **Stable embed URLs** for use in profiles, READMEs, and websites
 
+## Examples
+
+Here are some example badges showcasing different contribution profiles:
+
+### @castrojo (Power Level: 2568)
+![castrojo's ContribEmblem](examples/castrojo.png)
+
+*High activity across all contribution areas - commits, PRs, issues, reviews, and popular repositories.*
+
+### @jeefy (Power Level: 1838)
+![jeefy's ContribEmblem](examples/jeefy.png)
+
+*Balanced contributions with strong review activity and consistent commits.*
+
+### @mrbobbytables (Power Level: 1623)
+![mrbobbytables' ContribEmblem](examples/mrbobbytables.png)
+
+*Community-focused contributor with emphasis on code reviews and issue engagement.*
+
+> **Note:** These are demonstration badges with sample stats to showcase the visual style. Your actual badge will reflect your real GitHub contribution data.
+
 ## Features
 
 ### 🎮 Destiny 2 Aesthetic

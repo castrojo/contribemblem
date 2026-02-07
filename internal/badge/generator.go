@@ -19,7 +19,7 @@ var rajdhaniFontData []byte
 
 const (
 	Width  = 800
-	Height = 400
+	Height = 162 // Matches Destiny 2 emblem aspect ratio (474:96)
 )
 
 var (
@@ -57,19 +57,19 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	xdraw.BiLinear.Scale(canvas, canvas.Bounds(), emblemImg, emblemImg.Bounds(), xdraw.Over, nil)
 
 	// Load font
-	face72, face32, err := loadFonts()
+	face48, face20, err := loadFonts()
 	if err != nil {
 		return fmt.Errorf("failed to load fonts: %w", err)
 	}
-	defer face72.Close()
-	defer face32.Close()
+	defer face48.Close()
+	defer face20.Close()
 
 	// Calculate Power Level
 	powerLevel := stats.Commits + stats.PullRequests + stats.Issues + stats.Reviews + stats.Stars
 
 	// Render Power Level (top-right)
 	powerText := fmt.Sprintf("%d", powerLevel)
-	DrawTextWithOutline(canvas, powerText, 700, 80, face72, PowerLevelColor)
+	DrawTextWithOutline(canvas, powerText, 700, 60, face48, PowerLevelColor)
 
 	// Render individual stats (bottom row)
 	statIcons := []string{"●", "◆", "■", "▲", "★"}
@@ -79,7 +79,7 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 
 	for i := 0; i < 5; i++ {
 		text := fmt.Sprintf("%s %s", statIcons[i], FormatNumber(statValues[i]))
-		DrawTextWithOutline(canvas, text, xOffset, 350, face32, WhiteColor)
+		DrawTextWithOutline(canvas, text, xOffset, 140, face20, WhiteColor)
 		xOffset += spacing
 	}
 
@@ -104,8 +104,8 @@ func loadFonts() (font.Face, font.Face, error) {
 		return nil, nil, err
 	}
 
-	face72, err := opentype.NewFace(ttf, &opentype.FaceOptions{
-		Size:    72,
+	face48, err := opentype.NewFace(ttf, &opentype.FaceOptions{
+		Size:    48,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
@@ -113,8 +113,8 @@ func loadFonts() (font.Face, font.Face, error) {
 		return nil, nil, err
 	}
 
-	face32, err := opentype.NewFace(ttf, &opentype.FaceOptions{
-		Size:    32,
+	face20, err := opentype.NewFace(ttf, &opentype.FaceOptions{
+		Size:    20,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
@@ -122,7 +122,7 @@ func loadFonts() (font.Face, font.Face, error) {
 		return nil, nil, err
 	}
 
-	return face72, face32, nil
+	return face48, face20, nil
 }
 
 func savePNG(img image.Image, path string) error {

@@ -1,0 +1,30 @@
+# ContribEmblem Configuration
+# This file demonstrates all available configuration options
+
+# GitHub username to fetch contribution statistics for
+# Required: Yes
+username: "your-github-username"
+
+# Metrics configuration - select which stats to display on your badge
+# At least one metric must be enabled
+metrics:
+  commits: true        # Display total commit contributions
+  pull_requests: true  # Display total pull request contributions
+  issues: true         # Display total issue contributions
+  reviews: true        # Display total pull request review contributions
+  stars: true          # Display total stars received across repositories
+
+# Emblem configuration - Destiny 2 emblem artwork settings
+emblems:
+  # Rotation list - emblem hash IDs to rotate through weekly
+  # At least one emblem ID is required
+  # Find emblem IDs at: https://destinyemblemcollector.com
+  rotation:
+    - "1538938257"  # Seventh Column Projection
+    - "1409726931"  # Warlock Bond
+    - "2216440108"  # Hunter Cloak
+    - "3711356257"  # Titan Mark
+  
+  # Fallback emblem - used if rotation list is empty or invalid
+  # Required: Yes
+  fallback: "1538938257"  # Seventh Column Projection

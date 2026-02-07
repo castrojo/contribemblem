@@ -35,6 +35,7 @@ type emblemData struct {
 	DisplayProperties struct {
 		Icon string `json:"icon"`
 	} `json:"displayProperties"`
+	SecondaryIcon string `json:"secondaryIcon"` // 474x96 wide banner
 }
 
 // FetchEmblem downloads emblem artwork from Bungie API
@@ -182,6 +183,11 @@ func lookupEmblemIcon(emblemHash string) (string, error) {
 	emblem, ok := manifest[emblemHash]
 	if !ok {
 		return "", fmt.Errorf("emblem hash %s not found in manifest", emblemHash)
+	}
+
+	// Prefer secondaryIcon (474x96 wide banner) over displayProperties.icon (96x96 square)
+	if emblem.SecondaryIcon != "" {
+		return emblem.SecondaryIcon, nil
 	}
 
 	if emblem.DisplayProperties.Icon == "" {
