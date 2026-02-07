@@ -158,10 +158,11 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	// Calculate Power Level
 	powerLevel := stats.Commits + stats.PullRequests + stats.Issues + stats.Reviews + stats.Stars
 
-	// Render username (top-left with medium font, ALL CAPS with letter-spacing, subtle rendering)
+	// Render username (positioned right of emblem icon area, ALL CAPS with subtle rendering)
 	if stats.Username != "" {
 		usernameY := accentHeight + marginTop + 22 // Adjusted for smaller 20pt font
-		DrawTextSubtle(canvas, strings.ToUpper(stats.Username), marginX+4, usernameY, fonts.Medium, WhiteColor)
+		usernameX := marginX + 85                  // Moved right to clear emblem icon (typically 60-80px wide)
+		DrawTextSubtle(canvas, strings.ToUpper(stats.Username), usernameX, usernameY, fonts.Medium, WhiteColor)
 	}
 
 	// Render Power Level (right-aligned with programmatic diamond icon)
