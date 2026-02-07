@@ -59,7 +59,21 @@ jobs:
       - name: Commit and push if changed
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          git pull --rebase origin main
+          # Pull with strategy to handle concurrent workflow runs
+          git pull --rebase=false origin main || true
           git add examples/*.png
-          git commit -m "chore: regenerate example badges with real Destiny emblem artwork"
-          git push
+          git commit -m "chore: regenerate example badges with real Destiny emblem artwork" || true
+          # Retry push up to 3 times in case of race conditions
+          for i in {1..3}; do
+            if git push; then
+              echo "✓ Push succeeded"
+              exit 0
+            fi
+            echo "⚠️  Push failed (attempt $i/3), pulling and retrying..."
+            git pull --rebase=false origin main
+            git add examples/*.png
+            git commit --amend --no-edit || true
+            sleep 2
+          done
+          echo "❌ Failed to push after 3 attempts"
+          exit 1
