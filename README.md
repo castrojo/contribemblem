@@ -120,3 +120,9 @@ See [LICENSE](LICENSE) for details.
 ## Inspiration
 
 Inspired by Destiny 2's iconic emblem system and the desire to bring that visual flair to GitHub profiles.
+
+<!-- CONTRIBEMBLEM:START -->
+![ContribEmblem](badge.png)
+
+*Last updated: February 7, 2026*
+<!-- CONTRIBEMBLEM:END -->

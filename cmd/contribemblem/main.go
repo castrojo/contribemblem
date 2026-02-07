@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/castrojo/contribemblem/internal/badge"
 	"github.com/castrojo/contribemblem/internal/bungie"
 	"github.com/castrojo/contribemblem/internal/emblem"
 	"github.com/castrojo/contribemblem/internal/github"
+	"github.com/castrojo/contribemblem/internal/readme"
 )
 
 func main() {
@@ -79,11 +81,22 @@ func main() {
 		}
 
 		fmt.Println("✓ Badge generated: badge.png")
+	case "update-readme":
+		changed, err := readme.Inject("README.md", "badge.png", time.Now())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error updating README: %v\n", err)
+			os.Exit(1)
+		}
+		if changed {
+			fmt.Println("✓ README updated")
+		} else {
+			fmt.Println("✓ README already current")
+		}
 	case "run":
 		fmt.Println("Running full ContribEmblem pipeline...")
 
 		// Step 1: Fetch GitHub stats
-		fmt.Println("[1/4] Fetching GitHub stats...")
+		fmt.Println("[1/5] Fetching GitHub stats...")
 		stats, err := github.FetchStats()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to fetch stats: %v\n", err)
@@ -103,7 +116,7 @@ func main() {
 		fmt.Println("✓ Stats saved to data/stats.json")
 
 		// Step 2: Select emblem
-		fmt.Println("[2/4] Selecting weekly emblem...")
+		fmt.Println("[2/5] Selecting weekly emblem...")
 		emblemHash, err := emblem.SelectEmblem(emblem.DefaultConfigPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to select emblem: %v\n", err)
@@ -112,7 +125,7 @@ func main() {
 		fmt.Printf("✓ Selected emblem: %s\n", emblemHash)
 
 		// Step 3: Fetch emblem from Bungie
-		fmt.Println("[3/4] Fetching emblem from Bungie API...")
+		fmt.Println("[3/5] Fetching emblem from Bungie API...")
 		if err := bungie.FetchEmblem(emblemHash); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to fetch emblem: %v\n", err)
 			os.Exit(1)
@@ -120,7 +133,7 @@ func main() {
 		fmt.Println("✓ Emblem downloaded to data/emblem.jpg")
 
 		// Step 4: Generate badge
-		fmt.Println("[4/4] Generating badge image...")
+		fmt.Println("[4/5] Generating badge image...")
 		badgeStats := &badge.Stats{
 			Commits:      stats.Commits,
 			PullRequests: stats.PullRequests,
@@ -133,6 +146,19 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("✓ Badge generated: badge.png")
+
+		// Step 5: Update README
+		fmt.Println("[5/5] Updating README...")
+		changed, err := readme.Inject("README.md", "badge.png", time.Now())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to update README: %v\n", err)
+			os.Exit(1)
+		}
+		if changed {
+			fmt.Println("✓ README updated")
+		} else {
+			fmt.Println("✓ README already current")
+		}
 
 		fmt.Println("\n🎉 Pipeline complete! Badge ready at badge.png")
 	case "help", "--help", "-h":
@@ -152,6 +178,7 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "  select-emblem    Select weekly emblem hash\n")
 	fmt.Fprintf(os.Stderr, "  fetch-emblem     Fetch emblem image from Bungie API\n")
 	fmt.Fprintf(os.Stderr, "  generate         Generate badge image\n")
+	fmt.Fprintf(os.Stderr, "  update-readme    Update README with badge and timestamp\n")
 	fmt.Fprintf(os.Stderr, "  run              Run full pipeline\n")
 	fmt.Fprintf(os.Stderr, "  help             Show this help message\n")
 }

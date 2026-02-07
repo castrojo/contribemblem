@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### GitHub Actions Infrastructure
 
-- [ ] **ACTNS-01**: Action runs on scheduled trigger (weekly) without manual intervention
-- [ ] **ACTNS-02**: Action prevents infinite trigger loops via [skip ci] commit message and path filters
-- [ ] **ACTNS-03**: Action has contents:write permission for committing generated images
-- [ ] **ACTNS-04**: Action configures git user.name and user.email in workflow setup
+- [x] **ACTNS-01**: Action runs on scheduled trigger (weekly) without manual intervention
+- [x] **ACTNS-02**: Action prevents infinite trigger loops via [skip ci] commit message and path filters
+- [x] **ACTNS-03**: Action has contents:write permission for committing generated images
+- [x] **ACTNS-04**: Action configures git user.name and user.email in workflow setup
 
 ### Configuration Management
 
@@ -33,19 +33,19 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Emblem Integration
 
-- [ ] **EMBLM-01**: Action fetches emblem artwork from Bungie API with proper authentication
-- [ ] **EMBLM-02**: Action randomly selects one emblem from user's rotation list weekly
-- [ ] **EMBLM-03**: Random selection seeded by week number for consistency within week
-- [ ] **EMBLM-04**: Fallback emblem used if fetch fails or emblem ID invalid
+- [x] **EMBLM-01**: Action fetches emblem artwork from Bungie API with proper authentication
+- [x] **EMBLM-02**: Action randomly selects one emblem from user's rotation list weekly
+- [x] **EMBLM-03**: Random selection seeded by week number for consistency within week
+- [x] **EMBLM-04**: Fallback emblem used if fetch fails or emblem ID invalid
 
 ### Image Generation
 
-- [ ] **IMAGE-01**: Action generates PNG image with emblem background and stat overlays
-- [ ] **IMAGE-02**: Power Level (sum of all 5 metrics) displayed prominently on image
-- [ ] **IMAGE-03**: Individual metric values and icons displayed below Power Level
-- [ ] **IMAGE-04**: Text rendered with outline/stroke for contrast on variable backgrounds
-- [ ] **IMAGE-05**: Image dimensions optimized for GitHub markdown display (800x400px)
-- [ ] **IMAGE-06**: Generated image saved with stable filename that overwrites previous version
+- [x] **IMAGE-01**: Action generates PNG image with emblem background and stat overlays
+- [x] **IMAGE-02**: Power Level (sum of all 5 metrics) displayed prominently on image
+- [x] **IMAGE-03**: Individual metric values and icons displayed below Power Level
+- [x] **IMAGE-04**: Text rendered with outline/stroke for contrast on variable backgrounds
+- [x] **IMAGE-05**: Image dimensions optimized for GitHub markdown display (800x400px)
+- [x] **IMAGE-06**: Generated image saved with stable filename that overwrites previous version
 
 ### File Operations
 
@@ -101,25 +101,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ACTNS-01 | Phase 1 | Pending |
-| ACTNS-02 | Phase 1 | Pending |
-| ACTNS-03 | Phase 1 | Pending |
-| ACTNS-04 | Phase 1 | Pending |
-| STATS-01 | Phase 2 | Pending |
-| STATS-02 | Phase 2 | Pending |
-| STATS-03 | Phase 2 | Pending |
-| STATS-04 | Phase 2 | Pending |
-| STATS-05 | Phase 2 | Pending |
-| EMBLM-01 | Phase 3 | Pending |
-| EMBLM-02 | Phase 3 | Pending |
-| EMBLM-03 | Phase 3 | Pending |
-| EMBLM-04 | Phase 3 | Pending |
-| IMAGE-01 | Phase 4 | Pending |
-| IMAGE-02 | Phase 4 | Pending |
-| IMAGE-03 | Phase 4 | Pending |
-| IMAGE-04 | Phase 4 | Pending |
-| IMAGE-05 | Phase 4 | Pending |
-| IMAGE-06 | Phase 4 | Pending |
+| ACTNS-01 | Phase 1 | Complete |
+| ACTNS-02 | Phase 1 | Complete |
+| ACTNS-03 | Phase 1 | Complete |
+| ACTNS-04 | Phase 1 | Complete |
+| STATS-01 | Phase 2 | Complete |
+| STATS-02 | Phase 2 | Complete |
+| STATS-03 | Phase 2 | Complete |
+| STATS-04 | Phase 2 | Complete |
+| STATS-05 | Phase 2 | Complete |
+| EMBLM-01 | Phase 3 | Complete |
+| EMBLM-02 | Phase 3 | Complete |
+| EMBLM-03 | Phase 3 | Complete |
+| EMBLM-04 | Phase 3 | Complete |
+| IMAGE-01 | Phase 4 | Complete |
+| IMAGE-02 | Phase 4 | Complete |
+| IMAGE-03 | Phase 4 | Complete |
+| IMAGE-04 | Phase 4 | Complete |
+| IMAGE-05 | Phase 4 | Complete |
+| IMAGE-06 | Phase 4 | Complete |
 | FILES-01 | Phase 5 | Pending |
 | FILES-02 | Phase 5 | Pending |
 | FILES-03 | Phase 5 | Pending |
@@ -138,4 +138,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: January 27, 2026*
-*Last updated: January 27, 2026 after initial definition*
+*Last updated: February 6, 2026 — Phases 1-4 marked complete*

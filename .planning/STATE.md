@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated January 27, 2026)
 
 **Core value:** Developers get beautiful, game-inspired visual badges of their GitHub contributions that update and rotate automatically every week, embeddable anywhere on GitHub.
-**Current focus:** Phase 3 - Bungie API Integration
+**Current focus:** Phase 5 - README Update & Commit
 
 ## Current Position
 
-Phase: 3 of 6 (Bungie API Integration)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: January 28, 2026 — Completed Phase 3 Plan 03-01
+Phase: 5 of 6 (README Update & Commit)
+Plan: Not yet planned
+Status: Ready to plan
+Last activity: February 6, 2026 — Closed Phase 4 (Image Generation already implemented in Go conversion)
 
-Progress: [███░░░░░░░] 50% (3/6 phases complete)
+Progress: [██████░░░░] 67% (4/6 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 14 min
-- Total execution time: 0.7 hours
+- Total plans completed: 4
+- Average duration: ~11 min
+- Total execution time: ~0.8 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [███░░░░░░░] 50% (3/6 phases complete)
 | 01-github-actions-foundation | 1/1 | 35min | 35min |
 | 02-github-stats-collection | 1/1 | 1min | 1min |
 | 03-bungie-api-integration | 1/1 | 5min | 5min |
+| 04-image-generation-with-power-level | 1/1 | N/A (part of Go conversion) | N/A |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (35min), 02-01 (1min), 03-01 (5min)
-- Trend: Phase 3 complete (3/6 phases done, 50% milestone reached)
+- Phase 4 was implemented as part of the Go conversion (commits GO-01 through GO-06)
+- Planning docs updated retroactively to reflect actual implementation
 
 *Updated after each plan completion*
 
@@ -54,33 +55,41 @@ Recent decisions affecting current work:
 | 02-01 | UTC timezone for date boundaries | Matches GitHub contribution counting; prevents January 1 bugs | Phase 3 ISO week calculation, all date-sensitive queries |
 | 02-01 | Non-blocking rate limit monitoring | Logs warnings without failing workflow | Phase 3 Bungie API, all API integrations |
 | 03-01 | SHA256 seeded ISO week selection | Deterministic weekly emblem rotation | Phase 4 image generation knows emblem is stable |
-| 03-01 | Bash scripts for data fetching | Pattern consistency across pipeline | Future data fetching tasks follow same pattern |
 | 03-01 | Fallback emblem on API failure | Resilience without workflow failure | Phase 4 can always generate image |
+| GO | Full Go conversion replacing bash/Node.js | Single binary, no CGo, simpler CI/CD | All phases benefit from unified Go codebase |
+| 04-01 | Pure Go image generation with golang.org/x/image | No CGo required, font embedded via go:embed | Single binary deployment |
+| 04-01 | Multi-offset stroke technique (16 offsets ±2px) | Go has no native strokeText; simulates outline | Text readability on variable backgrounds |
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-**Phase 1 (Critical) - ✅ RESOLVED:**
-- ✅ Infinite action loop prevention configured with [skip ci] + paths-ignore dual defense
-- ✅ GITHUB_TOKEN permissions explicitly granted (contents:write at workflow level)
+**Phase 1 (Critical) - RESOLVED:**
+- Infinite action loop prevention configured with [skip ci] + paths-ignore dual defense
+- GITHUB_TOKEN permissions explicitly granted (contents:write at workflow level)
 
-**Phase 2 (Important) - ✅ RESOLVED:**
-- ✅ Calendar year date boundary handling implemented with explicit UTC logic
-- ✅ GraphQL caching strategy implemented from start with actions/cache@v4
+**Phase 2 (Important) - RESOLVED:**
+- Calendar year date boundary handling implemented with explicit UTC logic
+- GraphQL caching strategy implemented from start with actions/cache@v4
 
-**Phase 3 (Moderate) - ✅ RESOLVED:**
-- ✅ Bungie API documentation researched; manifest structure and authentication confirmed
-- ✅ User setup documented: BUNGIE_API_KEY required in repository secrets
+**Phase 3 (Moderate) - RESOLVED:**
+- Bungie API documentation researched; manifest structure and authentication confirmed
+- User setup documented: BUNGIE_API_KEY required in repository secrets
 
-**Phase 4 (Moderate):**
-- Text contrast solution (outline/stroke) must be implemented from start; retrofitting is visually disruptive
+**Phase 4 (Moderate) - RESOLVED:**
+- Text contrast solution (outline/stroke) implemented via multi-offset technique
+- Pure Go implementation with embedded font eliminates runtime dependencies
+
+**Phase 5 (Moderate):**
+- README marker injection must be non-destructive (preserve user content outside markers)
+- Image hash comparison needed to avoid unnecessary commits
+- Need to handle case where README has no markers yet (first-time setup)
 
 ## Session Continuity
 
-Last session: January 28, 2026
-Stopped at: Completed Phase 3 Plan 03-01 (Bungie API Integration)
+Last session: February 6, 2026
+Stopped at: Closed Phase 4, planning docs updated to reflect Go implementation
 Resume file: None
-Next: Ready to plan Phase 4 (Image Generation with Power Level)
+Next: Plan and implement Phase 5 (README Update & Commit)

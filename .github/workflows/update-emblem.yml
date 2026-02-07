@@ -87,7 +87,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git add badge.png data/
+          git add badge.png data/ README.md
           if git diff --cached --quiet; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
