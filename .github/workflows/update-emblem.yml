@@ -25,6 +25,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Build ContribEmblem
+        run: go build -o contribemblem cmd/contribemblem/main.go
+      
       - name: Get current date (UTC)
         id: get-date
         run: echo "date=$(date -u +%Y%m%d)" >> $GITHUB_OUTPUT
@@ -38,29 +47,6 @@ jobs:
           restore-keys: |
             github-stats-
       
-      - name: Create data directory
-        run: mkdir -p data
-      
-      - name: Fetch GitHub Stats
-        if: steps.cache-stats.outputs.cache-hit != 'true'
-        run: |
-          chmod +x scripts/fetch-stats.sh scripts/process-stats.sh
-          ./scripts/fetch-stats.sh > data/stats.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-      
-      - name: Log stats status
-        run: |
-          if [ "${{ steps.cache-stats.outputs.cache-hit }}" == "true" ]; then
-            echo "✓ Using cached stats from previous run (within 24 hours)"
-          else
-            echo "✓ Fetched fresh stats from GitHub API"
-          fi
-          echo "Stats for year: $(jq -r '.year' data/stats.json)"
-          echo "Last updated: $(jq -r '.updated_at' data/stats.json)"
-          echo "Power Level: $(jq '[.commits, .pull_requests, .issues, .reviews, .stars_received] | add' data/stats.json)"
-      
       - name: Cache Bungie Manifest
         id: cache-manifest
         uses: actions/cache@v4
@@ -69,6 +55,9 @@ jobs:
           key: bungie-manifest-${{ steps.get-date.outputs.date }}
           restore-keys: |
             bungie-manifest-
+      
+      - name: Create data directory
+        run: mkdir -p data
       
       - name: Create default emblem config
         run: |
@@ -79,32 +68,21 @@ jobs:
             echo "✓ Using existing emblem config"
           fi
       
-      - name: Select weekly emblem
-        id: select-emblem
-        run: |
-          chmod +x scripts/select-emblem.sh
-          EMBLEM_HASH=$(./scripts/select-emblem.sh)
-          echo "hash=$EMBLEM_HASH" >> $GITHUB_OUTPUT
-          echo "✓ Selected emblem hash: $EMBLEM_HASH"
-      
-      - name: Fetch emblem from Bungie API
-        run: |
-          chmod +x scripts/fetch-emblem.sh
-          if echo "${{ steps.select-emblem.outputs.hash }}" | ./scripts/fetch-emblem.sh; then
-            echo "✓ Emblem fetched successfully"
-          else
-            echo "⚠️  Bungie API fetch failed, using fallback emblem"
-            # Download fallback emblem directly (The Seventh Column)
-            curl -o data/emblem.jpg https://www.bungie.net/common/destiny2_content/icons/70f838d67c5f4cf285620f5b66d338a5.jpg
-          fi
+      - name: Run ContribEmblem pipeline
+        run: ./contribemblem run
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
           BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
       
-      - name: Log emblem status
+      - name: Log completion status
         run: |
-          echo "✓ Emblem image ready for Phase 4 image generation"
-          ls -lh data/emblem.jpg
-          file data/emblem.jpg
+          echo "✓ Pipeline completed successfully"
+          ls -lh badge.png
+          file badge.png
+          echo "Stats for year: $(jq -r '.year' data/stats.json)"
+          echo "Last updated: $(jq -r '.updated_at' data/stats.json)"
+          echo "Power Level: $(jq '[.commits, .pull_requests, .issues, .reviews, .stars_received] | add' data/stats.json)"
       
       - name: Check for changes
         id: changes
@@ -118,6 +96,6 @@ jobs:
       - name: Commit and push if changed
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          git add emblem.png.tmp
-          git commit -m "chore: update emblem badge [skip ci]"
+          git add badge.png data/
+          git commit -m "chore: update badge [skip ci]"
           git push
