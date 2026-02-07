@@ -125,9 +125,14 @@ func getManifestURL(apiKey string) (string, error) {
 }
 
 func downloadManifestIfNeeded(url string) error {
-	if _, err := os.Stat(ManifestCache); err == nil {
-		fmt.Fprintf(os.Stderr, "✓ Using cached manifest\n")
-		return nil
+	// Check if manifest exists and is fresh (< 24 hours old)
+	if info, err := os.Stat(ManifestCache); err == nil {
+		age := time.Since(info.ModTime())
+		if age < 24*time.Hour {
+			fmt.Fprintf(os.Stderr, "✓ Using cached manifest (age: %v)\n", age.Round(time.Minute))
+			return nil
+		}
+		fmt.Fprintf(os.Stderr, "⚠️  Manifest cache expired (age: %v), re-downloading...\n", age.Round(time.Minute))
 	}
 
 	fmt.Fprintf(os.Stderr, "Downloading manifest database (~100MB, this may take a moment)...\n")
