@@ -243,7 +243,8 @@ func downloadImage(url, outputPath string) error {
 
 	// Use ImageMagick to convert and normalize JPEG
 	// This handles exotic subsampling modes that Go's stdlib can't decode
-	cmd := exec.Command("convert", tempPath, "-quality", "95", outputPath)
+	// -sampling-factor 4:2:0 forces standard chroma subsampling
+	cmd := exec.Command("convert", tempPath, "-sampling-factor", "4:2:0", "-quality", "95", outputPath)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
