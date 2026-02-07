@@ -12,8 +12,8 @@ func TestDrawTextWithOutline(t *testing.T) {
 	// Create an in-memory RGBA image
 	img := image.NewRGBA(image.Rect(0, 0, 200, 100))
 
-	// Load the embedded Rajdhani font
-	ttf, err := opentype.Parse(rajdhaniFontData)
+	// Load the embedded Inter Bold font
+	ttf, err := opentype.Parse(interBoldFontData)
 	if err != nil {
 		t.Fatalf("failed to parse embedded font: %v", err)
 	}

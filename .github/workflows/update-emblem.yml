@@ -59,14 +59,14 @@ jobs:
       - name: Create data directory
         run: mkdir -p data
       
-      - name: Create default emblem config
+      - name: Verify emblem config exists
         run: |
           if [ ! -f data/emblem-config.json ]; then
-            echo '{"rotation":["4052831236","1901885391","1661191194"],"fallback":"4052831236"}' > data/emblem-config.json
-            echo "✓ Created default emblem config"
-          else
-            echo "✓ Using existing emblem config"
+            echo "❌ Error: data/emblem-config.json not found"
+            echo "This file should be committed to the repository"
+            exit 1
           fi
+          echo "✓ Found emblem config"
       
       - name: Run ContribEmblem pipeline
         run: ./contribemblem run

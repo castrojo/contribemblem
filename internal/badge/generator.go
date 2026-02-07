@@ -15,8 +15,11 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
-//go:embed assets/fonts/Rajdhani-Bold.ttf
-var rajdhaniFontData []byte
+//go:embed assets/fonts/Inter-Bold.ttf
+var interBoldFontData []byte
+
+//go:embed assets/fonts/Inter-Medium.ttf
+var interMediumFontData []byte
 
 const (
 	Width  = 800
@@ -42,15 +45,16 @@ var (
 	ShadowColor     = color.RGBA{0, 0, 0, 204} // alpha 0.8
 	StatBarColor    = color.RGBA{0, 0, 0, 150}
 	DividerColor    = color.RGBA{255, 255, 255, 50}
-	BorderColor     = color.RGBA{60, 60, 65, 255}
-	OverlayDark     = color.RGBA{0, 0, 0, 25}
+	BorderColor     = color.RGBA{45, 45, 50, 255}
+	OverlayDark     = color.RGBA{0, 0, 0, 35}
 )
 
-// FontFaces holds the three font sizes used in badge generation
+// FontFaces holds the four font faces used in badge generation
 type FontFaces struct {
-	Large  font.Face // 48pt for power level
-	Medium font.Face // 26pt for username
-	Small  font.Face // 14pt for stats
+	Large     font.Face // 48pt Inter Bold - power level
+	Medium    font.Face // 20pt Inter Medium - username
+	StatValue font.Face // 16pt Inter Bold - stat numbers
+	StatLabel font.Face // 10pt Inter Medium - stat labels (ALL-CAPS)
 }
 
 // Stats for badge generation
@@ -77,21 +81,65 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	// Create canvas
 	canvas := image.NewRGBA(image.Rect(0, 0, Width, Height))
 
-	// Phase 1: Scale and draw emblem as background
-	xdraw.BiLinear.Scale(canvas, canvas.Bounds(), emblemImg, emblemImg.Bounds(), xdraw.Over, nil)
+	// Phase 1: Scale and draw emblem as background with aspect-ratio-aware crop-to-fill
+	// Calculate target aspect ratio (800:162 = 4.94:1)
+	targetAspect := float64(Width) / float64(Height)
+	srcBounds := emblemImg.Bounds()
+	srcWidth := float64(srcBounds.Dx())
+	srcHeight := float64(srcBounds.Dy())
+	srcAspect := srcWidth / srcHeight
+
+	// Determine crop rectangle that matches target aspect ratio
+	var cropRect image.Rectangle
+	if srcAspect > targetAspect {
+		// Source is wider - crop horizontally (center crop)
+		newWidth := int(srcHeight * targetAspect)
+		offsetX := (srcBounds.Dx() - newWidth) / 2
+		cropRect = image.Rect(
+			srcBounds.Min.X+offsetX,
+			srcBounds.Min.Y,
+			srcBounds.Min.X+offsetX+newWidth,
+			srcBounds.Max.Y,
+		)
+	} else {
+		// Source is taller - crop vertically (center crop)
+		newHeight := int(srcWidth / targetAspect)
+		offsetY := (srcBounds.Dy() - newHeight) / 2
+		cropRect = image.Rect(
+			srcBounds.Min.X,
+			srcBounds.Min.Y+offsetY,
+			srcBounds.Max.X,
+			srcBounds.Min.Y+offsetY+newHeight,
+		)
+	}
+
+	// Scale the cropped region to fill the canvas
+	xdraw.BiLinear.Scale(canvas, canvas.Bounds(), emblemImg, cropRect, xdraw.Over, nil)
 
 	// Phase 2: Overall darken overlay for Destiny dark UI feel
 	drawRect(canvas, 0, 0, Width, Height, OverlayDark)
 
 	// Phase 3: Horizontal gradient overlay (left transparent → right semi-opaque black)
-	drawHorizontalGradient(canvas, int(float64(Width)*gradientStartX), 0, Width, Height, color.RGBA{0, 0, 0, 100})
+	drawHorizontalGradient(canvas, int(float64(Width)*gradientStartX), 0, Width, Height, color.RGBA{0, 0, 0, 150})
+
+	// Phase 3b: Bottom vignette (subtle bottom-up darkening above stat bar)
+	vignetteStartY := Height / 2           // start at vertical midpoint
+	vignetteEndY := Height - statBarHeight // end at stat bar top
+	drawVerticalGradient(canvas, 0, vignetteStartY, Width, vignetteEndY, color.RGBA{0, 0, 0, 60})
 
 	// Phase 4: Semi-transparent stat bar across bottom
 	statBarY := Height - statBarHeight
 	drawRect(canvas, 0, statBarY, Width, statBarHeight, StatBarColor)
 
+	// Stat bar top edge separator
+	StatBarEdgeColor := color.RGBA{255, 255, 255, 30} // very subtle white line
+	drawRect(canvas, 0, statBarY, Width, 1, StatBarEdgeColor)
+
 	// Phase 5: Gold accent line at top
 	drawRect(canvas, 0, 0, Width, accentHeight, AccentColor)
+	// Accent glow (subtle bloom below the solid line)
+	AccentGlowColor := color.RGBA{206, 174, 51, 80} // translucent gold
+	drawRect(canvas, 0, accentHeight, Width, 1, AccentGlowColor)
 
 	// Phase 6: Border around entire badge
 	drawBorder(canvas, Width, Height, borderWidth, BorderColor)
@@ -103,7 +151,8 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	}
 	defer fonts.Large.Close()
 	defer fonts.Medium.Close()
-	defer fonts.Small.Close()
+	defer fonts.StatValue.Close()
+	defer fonts.StatLabel.Close()
 
 	// Calculate Power Level
 	powerLevel := stats.Commits + stats.PullRequests + stats.Issues + stats.Reviews + stats.Stars
@@ -114,24 +163,37 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 		DrawTextWithOutline(canvas, stats.Username, marginX+4, usernameY, fonts.Medium, WhiteColor)
 	}
 
-	// Render Power Level (right-aligned with diamond icon)
+	// Render Power Level (right-aligned with programmatic diamond icon)
 	powerText := fmt.Sprintf("%d", powerLevel)
-	diamondIcon := "◆"
 
-	// Measure text widths
+	// Diamond sizing: ~60% of power level font cap height
+	// At 48pt, cap height is roughly 35px, so diamond is ~21px tall, ~15px wide
+	diamondHalfH := 11 // 22px total height
+	diamondHalfW := 8  // 16px total width
+	diamondGap := 6    // gap between diamond right edge and number left edge
+
+	// Power level number position (right-aligned)
 	powerWidth := measureText(fonts.Large, powerText)
-	diamondWidth := measureText(fonts.Large, diamondIcon)
-	totalWidth := diamondWidth + 8 + powerWidth // 8px spacing between diamond and number
-
-	// Calculate right-aligned position
+	totalWidth := (diamondHalfW * 2) + diamondGap + powerWidth
 	powerX := Width - marginX - totalWidth
 	powerY := accentHeight + marginTop + 52
 
-	// Draw diamond icon
-	DrawTextWithOutline(canvas, diamondIcon, powerX, powerY, fonts.Large, PowerLevelColor)
+	// Diamond center position (vertically centered with number baseline)
+	// The baseline is at powerY, cap height extends upward ~35px
+	// Center the diamond vertically with the number: baseline - capHeight/2
+	diamondCX := powerX + diamondHalfW
+	diamondCY := powerY - 16 // adjust to visually center with number
 
-	// Draw power level number
-	DrawTextWithOutline(canvas, powerText, powerX+diamondWidth+8, powerY, fonts.Large, PowerLevelColor)
+	// Draw diamond with outline for contrast (same 3-layer approach as text)
+	// Layer 1: shadow
+	drawDiamond(canvas, diamondCX+2, diamondCY+2, diamondHalfW+1, diamondHalfH+1, ShadowColor)
+	// Layer 2: black outline
+	drawDiamond(canvas, diamondCX, diamondCY, diamondHalfW+2, diamondHalfH+2, BlackColor)
+	// Layer 3: gold fill
+	drawDiamond(canvas, diamondCX, diamondCY, diamondHalfW, diamondHalfH, PowerLevelColor)
+
+	// Draw power level number after diamond
+	DrawTextWithOutline(canvas, powerText, powerX+(diamondHalfW*2)+diamondGap, powerY, fonts.Large, PowerLevelColor)
 
 	// Render stats in stat bar (centered in cells with dividers)
 	statLabels := []string{"COMMITS", "PRS", "ISSUES", "REVIEWS", "STARS"}
@@ -152,8 +214,8 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 		value := FormatNumber(statValues[i])
 
 		// Measure text widths for centering
-		labelWidth := measureText(fonts.Small, label)
-		valueWidth := measureText(fonts.Small, value)
+		labelWidth := measureText(fonts.StatLabel, label)
+		valueWidth := measureText(fonts.StatValue, value)
 		totalTextWidth := labelWidth + 6 + valueWidth // 6px spacing between label and value
 
 		// Calculate center position within cell
@@ -161,8 +223,8 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 		textStartX := cellCenterX - totalTextWidth/2
 
 		// Draw label (dim white) and value (bright white)
-		DrawTextWithOutline(canvas, label, textStartX, statCenterY+5, fonts.Small, DimWhiteColor)
-		DrawTextWithOutline(canvas, value, textStartX+labelWidth+6, statCenterY+5, fonts.Small, WhiteColor)
+		DrawTextWithOutline(canvas, label, textStartX, statCenterY+5, fonts.StatLabel, DimWhiteColor)
+		DrawTextWithOutline(canvas, value, textStartX+labelWidth+6, statCenterY+5, fonts.StatValue, WhiteColor)
 	}
 
 	// Save PNG
@@ -181,12 +243,20 @@ func loadImage(path string) (image.Image, error) {
 }
 
 func loadFonts() (*FontFaces, error) {
-	ttf, err := opentype.Parse(rajdhaniFontData)
+	// Parse Inter Bold font
+	boldTTF, err := opentype.Parse(interBoldFontData)
 	if err != nil {
 		return nil, err
 	}
 
-	large, err := opentype.NewFace(ttf, &opentype.FaceOptions{
+	// Parse Inter Medium font
+	mediumTTF, err := opentype.Parse(interMediumFontData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Large: 48pt Inter Bold - power level
+	large, err := opentype.NewFace(boldTTF, &opentype.FaceOptions{
 		Size:    48,
 		DPI:     72,
 		Hinting: font.HintingFull,
@@ -195,8 +265,9 @@ func loadFonts() (*FontFaces, error) {
 		return nil, err
 	}
 
-	medium, err := opentype.NewFace(ttf, &opentype.FaceOptions{
-		Size:    26,
+	// Medium: 20pt Inter Medium - username
+	medium, err := opentype.NewFace(mediumTTF, &opentype.FaceOptions{
+		Size:    20,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
@@ -205,8 +276,9 @@ func loadFonts() (*FontFaces, error) {
 		return nil, err
 	}
 
-	small, err := opentype.NewFace(ttf, &opentype.FaceOptions{
-		Size:    14,
+	// StatValue: 16pt Inter Bold - stat numbers
+	statValue, err := opentype.NewFace(boldTTF, &opentype.FaceOptions{
+		Size:    16,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
@@ -216,10 +288,24 @@ func loadFonts() (*FontFaces, error) {
 		return nil, err
 	}
 
+	// StatLabel: 10pt Inter Medium - stat labels (ALL-CAPS)
+	statLabel, err := opentype.NewFace(mediumTTF, &opentype.FaceOptions{
+		Size:    10,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		large.Close()
+		medium.Close()
+		statValue.Close()
+		return nil, err
+	}
+
 	return &FontFaces{
-		Large:  large,
-		Medium: medium,
-		Small:  small,
+		Large:     large,
+		Medium:    medium,
+		StatValue: statValue,
+		StatLabel: statLabel,
 	}, nil
 }
 
@@ -258,6 +344,47 @@ func drawHorizontalGradient(dst draw.Image, startX, y, endX, height int, endColo
 
 		drawRect(dst, x, y, 1, height, gradColor)
 	}
+}
+
+// drawVerticalGradient draws a top-to-bottom gradient from transparent to the given color
+func drawVerticalGradient(dst draw.Image, x, startY, width, endY int, endColor color.Color) {
+	r, g, b, a := endColor.RGBA()
+	maxAlpha := float64(a >> 8)
+
+	for y := startY; y < endY; y++ {
+		progress := float64(y-startY) / float64(endY-startY)
+		alpha := uint8(progress * maxAlpha)
+		gradColor := color.RGBA{
+			R: uint8(r >> 8),
+			G: uint8(g >> 8),
+			B: uint8(b >> 8),
+			A: alpha,
+		}
+		drawRect(dst, x, y, width, 1, gradColor)
+	}
+}
+
+// drawDiamond draws a filled diamond (rotated square) centered at (cx, cy)
+// with the given half-width and half-height, filled with the specified color.
+func drawDiamond(dst draw.Image, cx, cy, halfW, halfH int, col color.Color) {
+	// Fill a diamond by iterating rows from top to bottom
+	// At each row y, calculate the horizontal span using linear interpolation
+	for dy := -halfH; dy <= halfH; dy++ {
+		// Calculate width at this row (full width at center, 0 at tips)
+		progress := 1.0 - float64(abs(dy))/float64(halfH)
+		spanHalf := int(float64(halfW) * progress)
+		for dx := -spanHalf; dx <= spanHalf; dx++ {
+			dst.Set(cx+dx, cy+dy, col)
+		}
+	}
+}
+
+// abs returns the absolute value of an integer
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 // drawBorder draws a border around the image

@@ -185,7 +185,7 @@ Edit `data/emblem-config.json` to customize your emblem rotation:
 - **Language:** Pure Go (no CGo dependencies)
 - **Image Generation:** stdlib + `golang.org/x/image`
 - **Badge Size:** 800×162px PNG (matches Destiny 2's 474:96 emblem aspect ratio)
-- **Font:** Rajdhani Bold (embedded via `go:embed`)
+- **Font:** Inter (embedded via `go:embed`)
 - **Caching:** Manifest cache persists until manually deleted (daily refresh in CI via cache keys)
 - **Configuration:** YAML (`contribemblem.yml`) or JSON (`data/emblem-config.json`)
 - **Testing:** Core functionality tests with additional test coverage in progress

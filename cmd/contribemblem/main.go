@@ -186,6 +186,11 @@ func main() {
 		}
 
 		fmt.Println("\n🎉 Pipeline complete! Badge ready at badge.png")
+	case "generate-demos":
+		if err := generateDemos(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
 	case "help", "--help", "-h":
 		printUsage()
 		os.Exit(0)
@@ -204,6 +209,81 @@ func getUsername(cfg *config.Config) string {
 	return os.Getenv("GITHUB_ACTOR")
 }
 
+type demoUser struct {
+	username   string
+	emblemHash string
+	commits    int
+	prs        int
+	issues     int
+	reviews    int
+	stars      int
+}
+
+var demoUsers = []demoUser{
+	{"castrojo", "4052831236", 842, 156, 89, 234, 1247},
+	{"jeefy", "1901885391", 567, 123, 67, 189, 892},
+	{"mrbobbytables", "1661191194", 423, 98, 156, 312, 634},
+}
+
+func generateDemos() error {
+	// Validate BUNGIE_API_KEY
+	if os.Getenv("BUNGIE_API_KEY") == "" {
+		return fmt.Errorf("BUNGIE_API_KEY environment variable not set\nGet your API key from https://www.bungie.net/en/Application")
+	}
+
+	// Create directories
+	os.MkdirAll("examples", 0755)
+	os.MkdirAll("data", 0755)
+
+	for _, user := range demoUsers {
+		fmt.Printf("\n=== Generating badge for @%s ===\n", user.username)
+
+		// Write stats JSON
+		stats := github.Stats{
+			Year:          time.Now().Year(),
+			UpdatedAt:     time.Now().Format(time.RFC3339),
+			Commits:       user.commits,
+			PullRequests:  user.prs,
+			Issues:        user.issues,
+			Reviews:       user.reviews,
+			StarsReceived: user.stars,
+		}
+		statsJSON, _ := json.MarshalIndent(stats, "", "  ")
+		if err := os.WriteFile("data/stats.json", statsJSON, 0644); err != nil {
+			return fmt.Errorf("writing stats for %s: %w", user.username, err)
+		}
+
+		// Delete cached emblem to force fresh fetch
+		os.Remove("data/emblem.jpg")
+
+		// Fetch emblem
+		fmt.Printf("Fetching emblem %s...\n", user.emblemHash)
+		if err := bungie.FetchEmblem(user.emblemHash); err != nil {
+			return fmt.Errorf("fetching emblem for %s: %w", user.username, err)
+		}
+
+		// Generate badge
+		fmt.Println("Generating badge...")
+		badgeStats := &badge.Stats{
+			Username:     user.username,
+			Commits:      user.commits,
+			PullRequests: user.prs,
+			Issues:       user.issues,
+			Reviews:      user.reviews,
+			Stars:        user.stars,
+		}
+		outputPath := fmt.Sprintf("examples/%s.png", user.username)
+		if err := badge.Generate("data/emblem.jpg", badgeStats, outputPath); err != nil {
+			return fmt.Errorf("generating badge for %s: %w", user.username, err)
+		}
+
+		fmt.Printf("✓ Badge saved to %s\n", outputPath)
+	}
+
+	fmt.Println("\n✨ All demo badges generated successfully!")
+	return nil
+}
+
 func printUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: contribemblem <command>\n\n")
 	fmt.Fprintf(os.Stderr, "Commands:\n")
@@ -213,5 +293,6 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "  generate         Generate badge image\n")
 	fmt.Fprintf(os.Stderr, "  update-readme    Update README with badge and timestamp\n")
 	fmt.Fprintf(os.Stderr, "  run              Run full pipeline\n")
+	fmt.Fprintf(os.Stderr, "  generate-demos   Generate example badges for demo users\n")
 	fmt.Fprintf(os.Stderr, "  help             Show this help message\n")
 }
