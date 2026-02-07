@@ -3,8 +3,8 @@ data/stats.json
 data/emblem.jpg
 data/manifest.json
 
-# Go binary
-contribemblem
+# Go binary (in root only, not cmd/)
+/contribemblem
 
 # Output
 badge.png
