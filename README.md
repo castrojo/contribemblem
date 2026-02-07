@@ -18,11 +18,11 @@ Your emblem rotates weekly from Destiny 2's emblem collection, giving your profi
 
 ### 📊 GitHub Stats Integration
 Your "Power Level" is calculated from 5 key GitHub metrics:
-- Contributions this year
-- Commit count
+- Commits this year
 - Pull requests
 - Issues created/commented
-- Repositories contributed to
+- Code reviews
+- Stars received on your repositories
 
 ### 🔄 Automatic Updates
 The emblem updates every Sunday at midnight UTC via GitHub Actions. No manual intervention required.
@@ -31,42 +31,87 @@ The emblem updates every Sunday at midnight UTC via GitHub Actions. No manual in
 Use stable GitHub URLs to embed your emblem anywhere:
 
 ```markdown
-![My ContribEmblem](https://raw.githubusercontent.com/castrojo/contribemblem/main/emblem.png)
+![My ContribEmblem](https://raw.githubusercontent.com/castrojo/contribemblem/main/badge.png)
 ```
 
-## Status
+## Setup
 
-**🚧 Under Development**
+### Prerequisites
+- A GitHub account
+- A Bungie.net API key (free) - [Get one here](https://www.bungie.net/en/Application)
 
-This project is currently being built using the GSD (Get Shit Done) workflow:
+### Installation
 
-- ✅ Phase 0: Project Planning & Research
-- 🔄 Phase 1: GitHub Actions Foundation (In Progress)
-- ⏳ Phase 2: GitHub Stats Collection
-- ⏳ Phase 3: Bungie API Integration
-- ⏳ Phase 4: Image Generation with Power Level
-- ⏳ Phase 5: README Update & Commit
-- ⏳ Phase 6: Configuration & Validation
+1. **Fork or clone this repository**
 
-## Roadmap
+2. **Add secrets to your repository:**
+   - Go to Settings → Secrets and variables → Actions
+   - Add `BUNGIE_API_KEY` with your Bungie API key
 
-### Phase 1: GitHub Actions Foundation
-Set up the scheduled workflow infrastructure with proper permissions and loop prevention.
+3. **Configure emblem rotation (optional):**
+   - Edit `data/emblem-config.json` to customize your emblem rotation
+   - Find emblem hashes at [Destiny 2 API documentation](https://bungie-net.github.io/)
 
-### Phase 2: GitHub Stats Collection
-Implement GitHub GraphQL API integration to fetch current year statistics.
+4. **Enable GitHub Actions:**
+   - The workflow will run automatically every Sunday at midnight UTC
+   - Or manually trigger it from the Actions tab
 
-### Phase 3: Bungie API Integration
-Connect to Bungie's API to fetch emblem images and metadata for weekly rotation.
+## Local Development
 
-### Phase 4: Image Generation
-Use the `sharp` library to composite emblem images with Power Level overlays.
+### Building
 
-### Phase 5: README Update & Commit
-Automatically inject emblem images into README with marker-based updates.
+```bash
+# Build the binary
+make build
 
-### Phase 6: Configuration & Validation
-Add YAML configuration for customization and comprehensive error handling.
+# Run tests
+make test
+
+# Run the full pipeline locally
+export GITHUB_TOKEN=your_token
+export GITHUB_ACTOR=your_username
+export BUNGIE_API_KEY=your_key
+./contribemblem run
+```
+
+### CLI Commands
+
+The `contribemblem` binary supports these subcommands:
+
+```bash
+contribemblem fetch-stats      # Fetch GitHub stats via GraphQL
+contribemblem select-emblem    # Select weekly emblem hash
+contribemblem fetch-emblem     # Fetch emblem image from Bungie API
+contribemblem generate         # Generate badge image
+contribemblem run              # Run full pipeline
+contribemblem help             # Show help message
+```
+
+## Configuration
+
+Edit `data/emblem-config.json` to customize your emblem rotation:
+
+```json
+{
+  "rotation": [
+    "1538938257",
+    "2962058744",
+    "2962058745"
+  ],
+  "fallback": "1538938257"
+}
+```
+
+- `rotation`: Array of Bungie emblem hashes to rotate through weekly
+- `fallback`: Emblem to use if rotation is empty or config is missing
+
+## Technical Details
+
+- **Language:** Pure Go (no CGo dependencies)
+- **Image Generation:** stdlib + `golang.org/x/image`
+- **Badge Size:** 800×400px PNG
+- **Font:** Rajdhani Bold (embedded via `go:embed`)
+- **Caching:** GitHub Actions cache for manifest and stats (24 hours)
 
 ## License
 
