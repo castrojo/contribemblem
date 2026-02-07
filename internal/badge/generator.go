@@ -9,6 +9,7 @@ import (
 	_ "image/jpeg"
 	"image/png"
 	"os"
+	"strings"
 
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/font"
@@ -28,7 +29,7 @@ const (
 	// Layout constants
 	marginX        = 20
 	marginTop      = 12
-	statBarHeight  = 36
+	statBarHeight  = 44 // Increased from 36 to fit value-over-label layout
 	accentHeight   = 3
 	borderWidth    = 1
 	statDividerW   = 1
@@ -36,15 +37,15 @@ const (
 )
 
 var (
-	// Destiny exotic gold
-	PowerLevelColor = color.RGBA{244, 208, 63, 255} // #F4D03F
-	AccentColor     = color.RGBA{244, 208, 63, 255} // #F4D03F
+	// Destiny exotic gold (warmer, more accurate to Destiny 2)
+	PowerLevelColor = color.RGBA{245, 217, 106, 255} // #F5D96A - Destiny exotic gold
+	AccentColor     = color.RGBA{206, 174, 51, 255}  // #CEAE33 - Destiny accent gold
 	WhiteColor      = color.RGBA{255, 255, 255, 255}
 	DimWhiteColor   = color.RGBA{180, 180, 190, 255}
 	BlackColor      = color.RGBA{0, 0, 0, 255}
-	ShadowColor     = color.RGBA{0, 0, 0, 204} // alpha 0.8
-	StatBarColor    = color.RGBA{0, 0, 0, 150}
-	DividerColor    = color.RGBA{255, 255, 255, 50}
+	ShadowColor     = color.RGBA{0, 0, 0, 204}      // alpha 0.8
+	StatBarColor    = color.RGBA{0, 0, 0, 170}      // Increased from 150 for better readability
+	DividerColor    = color.RGBA{255, 255, 255, 70} // Increased from 50 for better visibility
 	BorderColor     = color.RGBA{45, 45, 50, 255}
 	OverlayDark     = color.RGBA{0, 0, 0, 35}
 )
@@ -157,19 +158,19 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	// Calculate Power Level
 	powerLevel := stats.Commits + stats.PullRequests + stats.Issues + stats.Reviews + stats.Stars
 
-	// Render username (top-left with medium font)
+	// Render username (top-left with medium font, ALL CAPS with letter-spacing, subtle rendering)
 	if stats.Username != "" {
-		usernameY := accentHeight + marginTop + 28
-		DrawTextWithOutline(canvas, stats.Username, marginX+4, usernameY, fonts.Medium, WhiteColor)
+		usernameY := accentHeight + marginTop + 22 // Adjusted for smaller 20pt font
+		DrawTextSubtle(canvas, strings.ToUpper(stats.Username), marginX+4, usernameY, fonts.Medium, WhiteColor)
 	}
 
 	// Render Power Level (right-aligned with programmatic diamond icon)
 	powerText := fmt.Sprintf("%d", powerLevel)
 
-	// Diamond sizing: ~60% of power level font cap height
-	// At 48pt, cap height is roughly 35px, so diamond is ~21px tall, ~15px wide
-	diamondHalfH := 11 // 22px total height
-	diamondHalfW := 8  // 16px total width
+	// Diamond sizing: proper diamond proportions (equal width and height)
+	// Increased slightly for better visibility next to 48pt text
+	diamondHalfH := 10 // 20px total height
+	diamondHalfW := 10 // 20px total width (equal to height for proper diamond)
 	diamondGap := 6    // gap between diamond right edge and number left edge
 
 	// Power level number position (right-aligned)
@@ -192,15 +193,14 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	// Layer 3: gold fill
 	drawDiamond(canvas, diamondCX, diamondCY, diamondHalfW, diamondHalfH, PowerLevelColor)
 
-	// Draw power level number after diamond
-	DrawTextWithOutline(canvas, powerText, powerX+(diamondHalfW*2)+diamondGap, powerY, fonts.Large, PowerLevelColor)
+	// Draw power level number after diamond with glow effect
+	DrawTextWithGlow(canvas, powerText, powerX+(diamondHalfW*2)+diamondGap, powerY, fonts.Large, PowerLevelColor, PowerLevelColor)
 
-	// Render stats in stat bar (centered in cells with dividers)
+	// Render stats in stat bar (vertical value-over-label layout)
 	statLabels := []string{"COMMITS", "PRS", "ISSUES", "REVIEWS", "STARS"}
 	statValues := []int{stats.Commits, stats.PullRequests, stats.Issues, stats.Reviews, stats.Stars}
 
 	cellWidth := Width / 5
-	statCenterY := statBarY + statBarHeight/2
 
 	for i := 0; i < 5; i++ {
 		// Draw vertical divider (except before first stat)
@@ -209,22 +209,25 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 			drawRect(canvas, dividerX, statBarY, statDividerW, statBarHeight, DividerColor)
 		}
 
-		// Prepare label and value text
 		label := statLabels[i]
 		value := FormatNumber(statValues[i])
 
-		// Measure text widths for centering
-		labelWidth := measureText(fonts.StatLabel, label)
+		// Center value horizontally in cell
 		valueWidth := measureText(fonts.StatValue, value)
-		totalTextWidth := labelWidth + 6 + valueWidth // 6px spacing between label and value
-
-		// Calculate center position within cell
 		cellCenterX := i*cellWidth + cellWidth/2
-		textStartX := cellCenterX - totalTextWidth/2
+		valueX := cellCenterX - valueWidth/2
 
-		// Draw label (dim white) and value (bright white)
-		DrawTextWithOutline(canvas, label, textStartX, statCenterY+5, fonts.StatLabel, DimWhiteColor)
-		DrawTextWithOutline(canvas, value, textStartX+labelWidth+6, statCenterY+5, fonts.StatValue, WhiteColor)
+		// Center label horizontally in cell
+		labelWidth := measureText(fonts.StatLabel, label)
+		labelX := cellCenterX - labelWidth/2
+
+		// Value on upper line: 18px from stat bar top
+		valueY := statBarY + 18
+		DrawTextWithOutline(canvas, value, valueX, valueY, fonts.StatValue, WhiteColor)
+
+		// Label on lower line: 36px from stat bar top
+		labelY := statBarY + 36
+		DrawTextWithOutline(canvas, label, labelX, labelY, fonts.StatLabel, DimWhiteColor)
 	}
 
 	// Save PNG
