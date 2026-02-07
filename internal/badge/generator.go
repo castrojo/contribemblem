@@ -158,10 +158,11 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 	// Calculate Power Level
 	powerLevel := stats.Commits + stats.PullRequests + stats.Issues + stats.Reviews + stats.Stars
 
-	// Render username (positioned right of emblem icon area, ALL CAPS with subtle rendering)
+	// Render username (positioned to the right of emblem icon, centered in left portion)
+	// In Destiny 2, usernames appear around 370-400px from left edge on 800px canvas
 	if stats.Username != "" {
 		usernameY := accentHeight + marginTop + 22 // Adjusted for smaller 20pt font
-		usernameX := marginX + 85                  // Moved right to clear emblem icon (typically 60-80px wide)
+		usernameX := 130                           // Positioned right of emblem icon area (~80-120px)
 		DrawTextSubtle(canvas, strings.ToUpper(stats.Username), usernameX, usernameY, fonts.Medium, WhiteColor)
 	}
 
