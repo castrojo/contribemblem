@@ -1,0 +1,60 @@
+name: Generate Demo Badges
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+permissions:
+  contents: write
+
+jobs:
+  generate-demos:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Build ContribEmblem
+        run: go build -o contribemblem ./cmd/contribemblem
+      
+      - name: Generate demo badges
+        run: |
+          chmod +x scripts/generate-demo-badges.sh
+          ./scripts/generate-demo-badges.sh
+        env:
+          BUNGIE_API_KEY: ${{ secrets.BUNGIE_API_KEY }}
+      
+      - name: Log completion status
+        run: |
+          echo "✓ Demo badges generated successfully"
+          ls -lh examples/*.png
+          file examples/*.png
+      
+      - name: Check for changes
+        id: changes
+        run: |
+          git add examples/*.png
+          if git diff --cached --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in example badges"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Example badges have been updated"
+          fi
+      
+      - name: Commit and push if changed
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git commit -m "chore: regenerate example badges with real Destiny emblem artwork"
+          git push
