@@ -1,10 +1,7 @@
-# Data files
+# Data files (cache only, not committed)
 data/stats.json
 data/emblem.jpg
 data/manifest.json
 
 # Go binary (in root only, not cmd/)
 /contribemblem
-
-# Output
-badge.png
