@@ -109,9 +109,11 @@ func DefaultConfig() *Config {
 		},
 		Emblems: EmblemsConfig{
 			Rotation: []string{
-				"1538938257", // Seventh Column Projection
+				"4052831236", // Activate ESCALATION
+				"1901885391", // A Crimson Cathedral
+				"1661191194", // A Hall of Delights
 			},
-			Fallback: "1538938257",
+			Fallback: "4052831236",
 		},
 	}
 }

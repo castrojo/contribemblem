@@ -13,10 +13,10 @@ ContribEmblem is a GitHub Action that automatically generates and updates a pers
 
 ### Recent Updates
 
-- ✅ **YAML Configuration Support** - New `contribemblem.yml` for easier setup
-- ✅ **Smart Manifest Caching** - 24-hour TTL with automatic cache invalidation
-- ✅ **Comprehensive Test Coverage** - Real tests for badge generation, text rendering, manifest parsing, and GitHub stats
-- ✅ **Improved Dimensions** - Badge now uses proper 800×162px aspect ratio matching Destiny 2 emblems
+- ✅ **Username Display** - Badges now show your GitHub username in the top-left corner
+- ✅ **ASCII Stat Labels** - Clear, readable stat indicators (C:, PR:, I:, R:, S:)
+- ✅ **Improved Dimensions** - Badge uses proper 800×162px aspect ratio matching Destiny 2 emblems
+- ✅ **Valid Emblem Hashes** - Now uses confirmed Destiny 2 emblems with real artwork (not Ghost Projections)
 
 ## Examples
 
@@ -148,10 +148,10 @@ metrics:
 
 emblems:
   rotation:
-    - "1538938257"  # Seventh Column Projection
-    - "2962058744"  # Another emblem
-    - "2962058745"  # Yet another emblem
-  fallback: "1538938257"
+    - "4052831236"  # Activate ESCALATION (orange/red Warmind)
+    - "1901885391"  # A Crimson Cathedral (deep red/crimson)
+    - "1661191194"  # A Hall of Delights (gold/Leviathan opulent)
+  fallback: "4052831236"
 ```
 
 **Configuration options:**
@@ -167,11 +167,11 @@ Edit `data/emblem-config.json` to customize your emblem rotation:
 ```json
 {
   "rotation": [
-    "1538938257",
-    "2962058744",
-    "2962058745"
+    "4052831236",
+    "1901885391",
+    "1661191194"
   ],
-  "fallback": "1538938257"
+  "fallback": "4052831236"
 }
 ```
 
@@ -186,9 +186,9 @@ Edit `data/emblem-config.json` to customize your emblem rotation:
 - **Image Generation:** stdlib + `golang.org/x/image`
 - **Badge Size:** 800×162px PNG (matches Destiny 2's 474:96 emblem aspect ratio)
 - **Font:** Rajdhani Bold (embedded via `go:embed`)
-- **Caching:** Manifest cache with 24-hour TTL (auto-invalidation)
+- **Caching:** Manifest cache persists until manually deleted (daily refresh in CI via cache keys)
 - **Configuration:** YAML (`contribemblem.yml`) or JSON (`data/emblem-config.json`)
-- **Testing:** Comprehensive test coverage with fixtures for badge generation, text rendering, manifest parsing, and GitHub stats
+- **Testing:** Core functionality tests with additional test coverage in progress
 
 ## License
 

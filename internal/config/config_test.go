@@ -20,9 +20,9 @@ metrics:
   stars: false
 emblems:
   rotation:
-    - "1538938257"
-    - "1409726931"
-  fallback: "1538938257"
+    - "4052831236"
+    - "1901885391"
+  fallback: "4052831236"
 `
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
@@ -51,8 +51,8 @@ emblems:
 	if len(cfg.Emblems.Rotation) != 2 {
 		t.Errorf("Expected 2 emblems in rotation, got %d", len(cfg.Emblems.Rotation))
 	}
-	if cfg.Emblems.Fallback != "1538938257" {
-		t.Errorf("Expected fallback '1538938257', got '%s'", cfg.Emblems.Fallback)
+	if cfg.Emblems.Fallback != "4052831236" {
+		t.Errorf("Expected fallback '4052831236', got '%s'", cfg.Emblems.Fallback)
 	}
 }
 
@@ -123,7 +123,7 @@ func TestValidateEmptyEmblemRotation(t *testing.T) {
 func TestValidateEmptyEmblemID(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.Username = "testuser"
-	cfg.Emblems.Rotation = []string{"1538938257", "", "1409726931"}
+	cfg.Emblems.Rotation = []string{"4052831236", "", "1901885391"}
 
 	err := cfg.Validate()
 	if err == nil {

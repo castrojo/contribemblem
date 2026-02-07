@@ -18,13 +18,12 @@ metrics:
 emblems:
   # Rotation list - emblem hash IDs to rotate through weekly
   # At least one emblem ID is required
-  # Find emblem IDs at: https://destinyemblemcollector.com
+  # Find emblem IDs at: https://www.light.gg/db/category/39/ or https://destinyemblemcollector.com
   rotation:
-    - "1538938257"  # Seventh Column Projection
-    - "1409726931"  # Warlock Bond
-    - "2216440108"  # Hunter Cloak
-    - "3711356257"  # Titan Mark
+    - "4052831236"  # Activate ESCALATION (orange/red Warmind)
+    - "1901885391"  # A Crimson Cathedral (deep red/crimson)
+    - "1661191194"  # A Hall of Delights (gold/Leviathan opulent)
   
   # Fallback emblem - used if rotation list is empty or invalid
   # Required: Yes
-  fallback: "1538938257"  # Seventh Column Projection
+  fallback: "4052831236"  # Activate ESCALATION

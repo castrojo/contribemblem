@@ -13,7 +13,7 @@ func TestSelectEmblem(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "emblem-config.json")
 
-	configJSON := `{"rotation":["1538938257","2962058744","2962058745"],"fallback":"1538938257"}`
+	configJSON := `{"rotation":["4052831236","1901885391","1661191194"],"fallback":"4052831236"}`
 	if err := os.WriteFile(configPath, []byte(configJSON), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
@@ -25,9 +25,9 @@ func TestSelectEmblem(t *testing.T) {
 
 	// Verify emblem is one of the rotation values
 	validEmblems := map[string]bool{
-		"1538938257": true,
-		"2962058744": true,
-		"2962058745": true,
+		"4052831236": true,
+		"1901885391": true,
+		"1661191194": true,
 	}
 	if !validEmblems[emblem] {
 		t.Errorf("Selected emblem %s not in rotation", emblem)
@@ -48,7 +48,7 @@ func TestSelectEmblemEmptyRotation(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "emblem-config.json")
 
-	configJSON := `{"rotation":[],"fallback":"1538938257"}`
+	configJSON := `{"rotation":[],"fallback":"4052831236"}`
 	if err := os.WriteFile(configPath, []byte(configJSON), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
@@ -66,7 +66,7 @@ func TestSelectEmblemDeterministic(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "emblem-config.json")
 
-	configJSON := `{"rotation":["1538938257","2962058744","2962058745"],"fallback":"1538938257"}`
+	configJSON := `{"rotation":["4052831236","1901885391","1661191194"],"fallback":"4052831236"}`
 	if err := os.WriteFile(configPath, []byte(configJSON), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
@@ -82,8 +82,8 @@ func TestSelectEmblemDeterministic(t *testing.T) {
 
 func TestSelectEmblemFromConfig(t *testing.T) {
 	cfg := &config.EmblemsConfig{
-		Rotation: []string{"1538938257", "2962058744", "2962058745"},
-		Fallback: "1538938257",
+		Rotation: []string{"4052831236", "1901885391", "1661191194"},
+		Fallback: "4052831236",
 	}
 
 	emblem, err := SelectEmblemFromConfig(cfg)
@@ -93,9 +93,9 @@ func TestSelectEmblemFromConfig(t *testing.T) {
 
 	// Verify emblem is one of the rotation values
 	validEmblems := map[string]bool{
-		"1538938257": true,
-		"2962058744": true,
-		"2962058745": true,
+		"4052831236": true,
+		"1901885391": true,
+		"1661191194": true,
 	}
 	if !validEmblems[emblem] {
 		t.Errorf("Selected emblem %s not in rotation", emblem)
@@ -129,8 +129,8 @@ func TestSelectEmblemFromConfigEmptyRotation(t *testing.T) {
 
 func TestSelectEmblemFromConfigDeterministic(t *testing.T) {
 	cfg := &config.EmblemsConfig{
-		Rotation: []string{"1538938257", "2962058744", "2962058745"},
-		Fallback: "1538938257",
+		Rotation: []string{"4052831236", "1901885391", "1661191194"},
+		Fallback: "4052831236",
 	}
 
 	// Select emblem twice - should be identical

@@ -18,9 +18,9 @@ echo "Generating demo badges..."
 
 # Define users with their stats and unique emblem hashes
 declare -A users=(
-  ["castrojo"]="1538938257"  # Seventh Column Projection
-  ["jeefy"]="2962058744"     # Different emblem from rotation
-  ["mrbobbytables"]="2962058745"  # Another emblem from rotation
+  ["castrojo"]="4052831236"  # Activate ESCALATION (orange/red Warmind)
+  ["jeefy"]="1901885391"     # A Crimson Cathedral (deep red/crimson)
+  ["mrbobbytables"]="1661191194"  # A Hall of Delights (gold/Leviathan opulent)
 )
 
 declare -A commits=(["castrojo"]=842 ["jeefy"]=567 ["mrbobbytables"]=423)

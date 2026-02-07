@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	FallbackEmblem    = "1538938257" // "Seventh Column Projection" emblem
+	FallbackEmblem    = "4052831236" // "Activate ESCALATION" emblem
 	DefaultConfigPath = "data/emblem-config.json"
 )
 
