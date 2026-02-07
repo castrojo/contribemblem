@@ -1,11 +1,13 @@
 package bungie
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -225,12 +227,34 @@ func downloadImage(url, outputPath string) error {
 		return err
 	}
 
-	out, err := os.Create(outputPath)
+	// Download to temp file first
+	tempPath := outputPath + ".tmp"
+	tempFile, err := os.Create(tempPath)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer os.Remove(tempPath) // Clean up temp file
 
-	_, err = io.Copy(out, resp.Body)
-	return err
+	_, err = io.Copy(tempFile, resp.Body)
+	tempFile.Close()
+	if err != nil {
+		return err
+	}
+
+	// Use ImageMagick to convert and normalize JPEG
+	// This handles exotic subsampling modes that Go's stdlib can't decode
+	cmd := exec.Command("convert", tempPath, "-quality", "95", outputPath)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		// If ImageMagick isn't available, try direct copy as fallback
+		if _, lookErr := exec.LookPath("convert"); lookErr != nil {
+			fmt.Fprintf(os.Stderr, "⚠️  ImageMagick not found, using raw JPEG (may have compatibility issues)\n")
+			return os.Rename(tempPath, outputPath)
+		}
+		return fmt.Errorf("imagemagick convert failed: %w\nStderr: %s", err, stderr.String())
+	}
+
+	return nil
 }
