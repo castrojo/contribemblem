@@ -1,13 +1,11 @@
 package bungie
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"time"
 )
 
@@ -37,7 +35,8 @@ type emblemData struct {
 	DisplayProperties struct {
 		Icon string `json:"icon"`
 	} `json:"displayProperties"`
-	SecondaryIcon string `json:"secondaryIcon"` // 474x96 wide banner
+	SecondaryIcon    string `json:"secondaryIcon"`    // 474x96 wide banner
+	SecondarySpecial string `json:"secondarySpecial"` // high-res detail view (1920x1080+)
 }
 
 // FetchEmblem downloads emblem artwork from Bungie API
@@ -192,7 +191,13 @@ func lookupEmblemIcon(emblemHash string) (string, error) {
 		return "", fmt.Errorf("emblem hash %s not found in manifest", emblemHash)
 	}
 
-	// Prefer secondaryIcon (474x96 wide banner) over displayProperties.icon (96x96 square)
+	// Prefer secondarySpecial (high-res 1920x1080+) over secondaryIcon (474x96)
+	// This allows downscaling instead of upscaling for sharper results
+	if emblem.SecondarySpecial != "" {
+		return emblem.SecondarySpecial, nil
+	}
+
+	// Fall back to secondaryIcon (474x96 wide banner) if secondarySpecial not available
 	if emblem.SecondaryIcon != "" {
 		return emblem.SecondaryIcon, nil
 	}
@@ -227,35 +232,13 @@ func downloadImage(url, outputPath string) error {
 		return err
 	}
 
-	// Download to temp file first
-	tempPath := outputPath + ".tmp"
-	tempFile, err := os.Create(tempPath)
+	// Save raw download directly to avoid JPEG re-encoding artifacts
+	out, err := os.Create(outputPath)
 	if err != nil {
 		return err
 	}
-	defer os.Remove(tempPath) // Clean up temp file
+	defer out.Close()
 
-	_, err = io.Copy(tempFile, resp.Body)
-	tempFile.Close()
-	if err != nil {
-		return err
-	}
-
-	// Use ImageMagick to convert and normalize JPEG
-	// This handles exotic subsampling modes that Go's stdlib can't decode
-	// -sampling-factor 4:2:0 forces standard chroma subsampling
-	cmd := exec.Command("convert", tempPath, "-sampling-factor", "4:2:0", "-quality", "95", outputPath)
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		// If ImageMagick isn't available, try direct copy as fallback
-		if _, lookErr := exec.LookPath("convert"); lookErr != nil {
-			fmt.Fprintf(os.Stderr, "⚠️  ImageMagick not found, using raw JPEG (may have compatibility issues)\n")
-			return os.Rename(tempPath, outputPath)
-		}
-		return fmt.Errorf("imagemagick convert failed: %w\nStderr: %s", err, stderr.String())
-	}
-
-	return nil
+	_, err = io.Copy(out, resp.Body)
+	return err
 }

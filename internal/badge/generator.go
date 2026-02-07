@@ -114,8 +114,8 @@ func Generate(emblemPath string, stats *Stats, outputPath string) error {
 		)
 	}
 
-	// Scale the cropped region to fill the canvas
-	xdraw.BiLinear.Scale(canvas, canvas.Bounds(), emblemImg, cropRect, xdraw.Over, nil)
+	// Scale the cropped region to fill the canvas using Catmull-Rom for sharper results
+	xdraw.CatmullRom.Scale(canvas, canvas.Bounds(), emblemImg, cropRect, xdraw.Over, nil)
 
 	// Phase 2: Overall darken overlay for Destiny dark UI feel
 	drawRect(canvas, 0, 0, Width, Height, OverlayDark)
