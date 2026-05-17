@@ -201,5 +201,5 @@ Inspired by Destiny 2's iconic emblem system and the desire to bring that visual
 <!-- CONTRIBEMBLEM:START -->
 ![ContribEmblem](badge.png)
 
-*Last updated: May 10, 2026*
+*Last updated: May 17, 2026*
 <!-- CONTRIBEMBLEM:END -->
